@@ -12,11 +12,18 @@
     "@types/node": "20.4.5",
     "@types/react": "18.2.17",
     "@types/react-dom": "18.2.7",
+    "bootstrap": "^5.3.1",
+    "clsx": "^2.0.0",
     "eslint": "8.45.0",
     "eslint-config-next": "13.4.12",
     "next": "13.4.12",
     "react": "18.2.0",
+    "react-bootstrap": "^2.8.0",
     "react-dom": "18.2.0",
-    "typescript": "5.1.6"
+    "react-icons": "^4.10.1",
+    "sass": "^1.64.1",
+    "typescript": "5.1.6",
+    "usehooks-ts": "^2.9.1",
+    "zustand": "^4.3.9"
   }
 }

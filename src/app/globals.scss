@@ -1,0 +1,75 @@
+//Nunito
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "~bootstrap/scss/functions";
+
+// 2. Include any default variable overrides here
+$primary: #000;
+$border-radius: 8px;
+$border-width: 2px;
+
+// 3. Include remainder of required Bootstrap stylesheets (including any separate color mode stylesheets)
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/variables-dark";
+
+// 4. Include any default map overrides here
+$font-family-sans-serif: "Nunito", sans-serif;
+$border-color: $gray-400;
+$box-shadow: 0 .15rem .5rem rgba($black, .15);
+
+//Button
+$btn-focus-width: 0;
+
+//Tabs 
+$nav-link-font-weight: 500;
+$nav-tabs-link-hover-border-color: $gray-200 $gray-200 $gray-400;
+$nav-tabs-link-active-border-color: $gray-400 $gray-400 $nav-tabs-link-active-bg;
+$nav-tabs-border-color: $gray-400;
+
+//Form input
+$input-font-weight: 500;
+$input-focus-border-color: $gray-400;
+$input-focus-box-shadow: null !important;
+$input-placeholder-color: $gray-500;
+
+
+// 5. Include remainder of required parts
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/root";
+
+// 6. Optionally include any other parts as needed
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/type";
+@import "~bootstrap/scss/images";
+@import "~bootstrap/scss/containers";
+@import "~bootstrap/scss/grid";
+@import "~bootstrap/scss/helpers";
+@import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/buttons";
+
+// 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
+@import "~bootstrap/scss/utilities/api";
+
+// 8. Add additional custom code here
+
+body {
+	overflow: overlay;
+}
+
+main {
+	// display: flex;
+	// justify-content: center;
+	// align-items: center;
+	min-height: calc(100vh - 56px);
+	text-align: center;
+}
+
+footer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 1rem 0;
+}

@@ -1,0 +1,69 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/variables-dark";
+@import "~bootstrap/scss/mixins";
+
+$cell-size: 58px;
+
+:export {
+	cellSize: $cell-size;
+}
+
+.tape {
+
+	&Button {
+		width: $cell-size;
+		height: $cell-size;
+		@include button-variant($background: $white,
+			$border: $gray-400,
+			$color: $black,
+			$hover-background: $white,
+			$hover-border: $gray-500,
+			$hover-color: $black);
+
+		&::after {
+			content: '';
+			position: absolute;
+			top: -5%;
+			// left: 100%;
+			width: $cell-size * 2;
+			height: 110%;
+			transform: translateX(2px);
+			background: -moz-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(125, 185, 232, 0) 100%);
+			background: -webkit-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(125, 185, 232, 0) 100%);
+			background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(125, 185, 232, 0) 100%);
+			filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#007db9e8', GradientType=1);
+			background-clip: padding-box;
+			box-sizing: content-box;
+			pointer-events: none;
+		}
+
+		&:first-child::after {
+			left: 100%;
+		}
+
+		&:last-child::after {
+			right: 100%;
+			transform: translateX(-2px) rotateY(180deg);
+		}
+	}
+
+	& .cell {
+		min-width: $cell-size !important;
+		min-height: $cell-size;
+		max-height: $cell-size;
+		text-align: center;
+		cursor: pointer;
+
+		&:hover {
+			border-color: $gray-500;
+			z-index: 8;
+		}
+
+		&.active {
+			border-color: $black;
+			box-shadow: $box-shadow-sm;
+			z-index: 9;
+		}
+	}
+}
