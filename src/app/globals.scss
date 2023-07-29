@@ -55,6 +55,15 @@ $input-placeholder-color: $gray-500;
 
 // 8. Add additional custom code here
 
+.btn-secondary {
+	@include button-variant($background: $white,
+		$border: $gray-400,
+		$color: $black,
+		$hover-background: $white,
+		$hover-border: $gray-500,
+		$hover-color: $black);
+}
+
 body {
 	overflow: overlay;
 }

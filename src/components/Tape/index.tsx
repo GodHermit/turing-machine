@@ -58,6 +58,7 @@ export default function Tape(props: TapeProps) {
 				<button
 					className={clsx(
 						'btn',
+						'btn-secondary',
 						styles.tapeButton,
 					)}
 					onClick={() => handleTapeMove('left')}
@@ -92,6 +93,7 @@ export default function Tape(props: TapeProps) {
 				<button
 					className={clsx(
 						'btn',
+						'btn-secondary',
 						styles.tapeButton,
 					)}
 					onClick={() => handleTapeMove('right')}
