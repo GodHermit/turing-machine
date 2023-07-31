@@ -1,6 +1,10 @@
 import { create } from 'zustand';
-import { TapeSettingsSlice, createTapeSettingsSlice } from './tapeSettingsSlice';
+import { MachineStateSlice, createMachineStateSlice } from './slices/machineStateSlice';
+import { TapeSettingsSlice, createTapeSettingsSlice } from './slices/tapeSettingsSlice';
 
-export const useStore = create<TapeSettingsSlice>()((...a) => ({
+type StoreType = TapeSettingsSlice & MachineStateSlice;
+
+export const useStore = create<StoreType>()((...a) => ({
 	...createTapeSettingsSlice(...a),
+	...createMachineStateSlice(...a),
 }));
