@@ -7,13 +7,10 @@ import { MdArrowBackIosNew, MdArrowForwardIos } from 'react-icons/md';
 import { useWindowSize } from 'usehooks-ts';
 import styles from './Tape.module.scss';
 
-interface TapeProps {
-	value: string;
-}
-
-export default function Tape(props: TapeProps) {
+export default function Tape() {
 	const [visibleCells, setVisibleCells] = useState(1); // must be odd
 	const [offsetLeft, setOffsetLeft] = useState(0);
+	const machineState = useStore(state => state.machineState);
 	const settings = useStore((state) => state.tapeSettings);
 	const tapeRef = useRef<HTMLDivElement>(null);
 	const windowSize = useWindowSize();
@@ -67,7 +64,7 @@ export default function Tape(props: TapeProps) {
 				</button>
 				{[...Array(visibleCells)].map((_, i) => {
 					const value = i >= middleCellIndex + offsetLeft
-						? props.value[i - middleCellIndex - offsetLeft]
+						? machineState.currentTapeValue[i - middleCellIndex - offsetLeft]
 						: '';
 
 					return (
