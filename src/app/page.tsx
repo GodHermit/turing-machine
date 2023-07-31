@@ -1,27 +1,24 @@
-import Input from '@/components/Input';
-import Tape from '@/components/Tape';
+import AlphabetInput from '@/components/TuringMachine/AlphabetInput';
+import Tape from '@/components/TuringMachine/Tape';
+import TapeInput from '@/components/TuringMachine/TapeInput';
 
 export default function Page() {
 	return (
 		<>
 			<div className='row'>
 				<div className='col'>
-					<Tape value='111 011' />
+					<Tape />
 				</div>
 			</div>
 			<div className='row'>
 				<div className='col text-start'>
-					<div className='mb-4'>
-						<Input label='Alphabet:'/>
-					</div>
-					<div className='mb-4'>
-						<Input label='Input:'/>
-					</div>
+					<AlphabetInput />
+					<TapeInput />
 				</div>
 				<div className='col'>
 					{/* // TODO: add the instruction table */}
 				</div>
-			</div>
+			</div >
 		</>
 	)
 }
