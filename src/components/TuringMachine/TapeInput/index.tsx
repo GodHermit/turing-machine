@@ -40,8 +40,8 @@ export default function TapeInput() {
 	const isWriteToTapeDisabled = useMemo(
 		() => (
 			isInputInvalid?.value || // If input does not match the alphabet
-			machineState.currentTapeValue === machineState.input && // If input is already written to the tape
-			new Set(machineState.alphabet).size === machineState.alphabet.length // If alphabet has duplicate characters (this is the same rule as in AlphabetInput
+			machineState.currentTapeValue === machineState.input || // If input is already written to the tape
+			new Set(machineState.alphabet).size !== machineState.alphabet.length // If alphabet has duplicate characters (this is the same rule as in AlphabetInput
 		),
 		[
 			isInputInvalid,
