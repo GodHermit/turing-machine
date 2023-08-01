@@ -71,6 +71,7 @@ export default function TapeInput() {
 
 		setMachineState({
 			currentTapeValue: machineState.input,
+			currentHeadPos: 0,
 		});
 	};
 

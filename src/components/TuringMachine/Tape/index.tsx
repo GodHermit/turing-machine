@@ -9,36 +9,51 @@ import styles from './Tape.module.scss';
 
 export default function Tape() {
 	const [visibleCells, setVisibleCells] = useState(1); // must be odd
-	const [offsetLeft, setOffsetLeft] = useState(0);
-	const machineState = useStore(state => state.machineState);
+	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
 	const settings = useStore((state) => state.tapeSettings);
 	const tapeRef = useRef<HTMLDivElement>(null);
 	const windowSize = useWindowSize();
 	const middleCellIndex = Math.floor(visibleCells / 2);
 
+	/**
+	 * Recalculate the number of visible cells when the window size changes.
+	 */
 	useEffect(() => {
 		if (tapeRef.current) {
-			const tapeWidth = (tapeRef.current as HTMLDivElement).clientWidth;
-			const minCellWidth = parseInt(styles.cellSize);
-			let visibleCells = Math.floor(tapeWidth / minCellWidth) - 2; // -2 for buttons
-			if (visibleCells % 2 === 0) visibleCells--; // must be odd
-			setVisibleCells(Math.max(visibleCells, 1)); // min 1 cell
+			const tapeWidth = (tapeRef.current as HTMLDivElement).clientWidth; // Get tape width
+			const minCellWidth = parseInt(styles.cellSize); // Get cell min width
+
+			// Calculate number of visible cells (minus 2 for the buttons)
+			let visibleCells = Math.floor(tapeWidth / minCellWidth) - 2;
+
+			// Make sure the number of visible cells odd
+			if (visibleCells % 2 === 0) visibleCells--;
+
+			// Set the number of visible cells (minimum 1)
+			setVisibleCells(Math.max(visibleCells, 1));
 		}
 	}, [windowSize]);
 
+	/**
+	 * Handles tape movement.
+	 */
 	const handleTapeMove = (direction: 'left' | 'right') => {
-		direction = settings.naturalScrolling // If natural scrolling is enabled
-			? direction === 'left' ? 'right' : 'left' // Reverse direction
-			: direction; // Otherwise use direction as is
-
+		let step = 0;
 		switch (direction) {
 			case 'left':
-				setOffsetLeft(offsetLeft + 1);
+				step = -1;
 				break;
 			case 'right':
-				setOffsetLeft(offsetLeft - 1);
+				step = 1;
 				break;
 		}
+
+		// Reverse step if natural scrolling is enabled
+		const naturalDirection = settings.naturalScrolling ? -1 : 1;
+
+		setMachineState({
+			currentHeadPos: machineState.currentHeadPos + step * naturalDirection,
+		});
 	}
 
 	return (
@@ -63,13 +78,17 @@ export default function Tape() {
 					<MdArrowBackIosNew />
 				</button>
 				{[...Array(visibleCells)].map((_, i) => {
-					const value = i >= middleCellIndex + offsetLeft
-						? machineState.currentTapeValue[i - middleCellIndex - offsetLeft]
-						: '';
+					// Get cell value (or empty string if not defined)
+					const value = machineState.currentTapeValue[
+						i - middleCellIndex + machineState.currentHeadPos
+					] || '';
+
+					// Calculate cell id
+					const cellId = i - middleCellIndex + machineState.currentHeadPos;
 
 					return (
 						<input
-							key={crypto.randomUUID()}
+							key={cellId}
 							type='text'
 							className={clsx(
 								'form-control',
@@ -78,12 +97,12 @@ export default function Tape() {
 								i === middleCellIndex && styles.active,
 							)}
 							maxLength={1}
-							defaultValue={value}
+							value={value}
 							readOnly
 							placeholder={settings.showBlankSymbol ? settings.blankSymbol : ''}
-							onClick={() => setOffsetLeft(
-								offsetLeft + middleCellIndex - i // Set offset to make clicked cell middle
-							)}
+							onClick={() => setMachineState({
+								currentHeadPos: cellId,
+							})}
 						/>
 					)
 				})}
