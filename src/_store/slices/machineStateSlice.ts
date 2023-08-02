@@ -7,6 +7,10 @@ export interface MachineState {
 	 */
 	alphabet: string[];
 	/**
+	 * Array of states of the Turing machine.
+	 */
+	states: string[];
+	/**
 	 * The input tape value.
 	 */
 	input: string;
@@ -32,6 +36,7 @@ interface MachineActions {
 
 export const initialMachineState: MachineState = {
 	alphabet: [],
+	states: ['q0'],
 	input: '',
 	currentTapeValue: '',
 	currentHeadPos: 0,

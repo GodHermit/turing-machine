@@ -1,0 +1,74 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/variables-dark";
+
+.InstructionsTable {
+	$cellWidth: 100px;
+
+	& thead {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		background-color: $table-bg;
+
+		&::after {
+			position: absolute;
+			content: "";
+			left: 0;
+			right: 0;
+			bottom: 0;
+			border: $border-width solid $table-border-color;
+		}
+	}
+
+	& th[scope*=row] {
+		position: sticky;
+		left: 0;
+		background-color: $table-bg;
+
+		&::after {
+			position: absolute;
+			content: "";
+			top: 0;
+			right: 0;
+			bottom: 0;
+			border: $border-width solid $table-border-color;
+		}
+	}
+
+	& tr {
+		border-width: 0 0 var(--bs-border-width) 0;
+
+		&:last-child {
+			border-width: 0;
+		}
+	}
+
+	& th,
+	& td {
+		min-width: $cellWidth;
+		background-color: inherit;
+		border-width: 0 var(--bs-border-width) 0 0;
+
+		&:first-child,
+		&:last-child {
+			border-width: 0;
+		}
+	}
+
+	& .DeleteRowButton {
+		--bs-btn-padding-y: .125rem;
+		--bs-btn-padding-x: .125rem;
+		--bs-btn-font-size: 1rem;
+		display: none;
+		position: absolute;
+		top: 50%;
+		right: $input-padding-x;
+		transform: translateY(-50%);
+		z-index: 2;
+	}
+
+	& *:hover > .DeleteRowButton {
+		display: flex;
+	}
+}
