@@ -1,4 +1,5 @@
 import AlphabetInput from '@/components/TuringMachine/AlphabetInput';
+import InstructionsInput from '@/components/TuringMachine/InstructionsInput';
 import Tape from '@/components/TuringMachine/Tape';
 import TapeInput from '@/components/TuringMachine/TapeInput';
 
@@ -10,15 +11,17 @@ export default function Page() {
 					<Tape />
 				</div>
 			</div>
-			<div className='row'>
-				<div className='col text-start'>
+			<div className='row text-start'>
+				<div className='col-6'>
 					<AlphabetInput />
 					<TapeInput />
 				</div>
+			</div>
+			<div className='row text-start'>
 				<div className='col'>
-					{/* // TODO: add the instruction table */}
+					<InstructionsInput />
 				</div>
-			</div >
+			</div>
 		</>
 	)
 }

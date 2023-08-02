@@ -30,7 +30,7 @@ $nav-tabs-border-color: $gray-400;
 //Form input
 $input-font-weight: 500;
 $input-focus-border-color: $gray-400;
-$input-focus-box-shadow: null !important;
+$input-focus-box-shadow: none !important;
 $input-placeholder-color: $gray-500;
 
 
@@ -49,6 +49,7 @@ $input-placeholder-color: $gray-500;
 @import "~bootstrap/scss/helpers";
 @import "~bootstrap/scss/forms";
 @import "~bootstrap/scss/buttons";
+@import "~bootstrap/scss/tables";
 
 // 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
 @import "~bootstrap/scss/utilities/api";

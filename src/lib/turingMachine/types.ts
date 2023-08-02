@@ -1,4 +1,4 @@
-export type Direction = 'L' | 'R' | 'HALT';
+export type Direction = 'L' | 'R' | 'N';
 
 export type Instruction = {
 	/**
@@ -10,7 +10,7 @@ export type Instruction = {
 	 */
 	symbol: string;
 	/**
-	 * The direction to move the head
+	 * The movement of the head after the instruction is executed
 	 */
 	move: Direction;
 	/**
@@ -26,13 +26,13 @@ export type Instruction = {
 export type TuringMachineOptions = {
 	/**
 	 * The state to use as halt
-	 * @default 'q0'
-	 * @description The machine will stop when the state is 'HALT'
+	 * @default '!'
+	 * @description If the machine reaches this state, it will stop
 	 */
 	finalState: string;
 	/**
 	 * The initial state of the machine
-	 * @default 'q1'
+	 * @default 'q0'
 	 */
 	initialState: string;
 	/**
