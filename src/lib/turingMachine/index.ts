@@ -13,13 +13,13 @@ export default class TuringMachine {
 	 */
 	public static readonly RIGHT: Direction = 'R';
 	/**
-	 * The direction to halt the machine
+	 * Lack of direction to stay in the same position
 	 */
-	public static readonly HALT: Direction = 'HALT';
+	public static readonly NONE: Direction = 'N';
 	/**
 	 * The symbol to use as blank
 	 */
-	public static BLANK_SYMBOL = '_';
+	public static BLANK_SYMBOL = 'λ';
 	/**
 	 * The input of the machine
 	 */
@@ -32,9 +32,9 @@ export default class TuringMachine {
 	 * The options of the machine
 	 */
 	private options: TuringMachineOptions = {
-		initialState: 'q1',
+		initialState: 'q0',
 		initialPosition: 0,
-		finalState: 'q0',
+		finalState: '!',
 		maxSteps: 1000
 	};
 	/**
@@ -42,7 +42,7 @@ export default class TuringMachine {
 	 */
 	private current = {
 		tapeValue: '',
-		state: 'q1', // Default
+		state: 'q0', // Default
 		position: 0 // Default
 	}
 
@@ -109,7 +109,7 @@ export default class TuringMachine {
 	public reset() {
 		this.current = {
 			tapeValue: this.input,
-			state: 'q1',
+			state: 'q0',
 			position: 0
 		}
 		TuringMachine.reset();
@@ -119,7 +119,7 @@ export default class TuringMachine {
 	 * Resets static properties
 	 */
 	private static reset() {
-		TuringMachine.BLANK_SYMBOL = '_';
+		TuringMachine.BLANK_SYMBOL = 'λ';
 	}
 
 	/**
@@ -173,13 +173,13 @@ export default class TuringMachine {
 	 * @param direction The direction to move the head
 	 * @returns The new head position
 	 */
-	private getNewHeadPosition(direction: string): number {
+	private getNewHeadPosition(direction: Direction): number {
 		switch (direction) {
 			case TuringMachine.LEFT:
 				return this.current.position - 1;
 			case TuringMachine.RIGHT:
 				return this.current.position + 1;
-			case TuringMachine.HALT:
+			case TuringMachine.NONE:
 				return this.current.position;
 			default:
 				throw new Error(`Invalid move '${direction}'`);
