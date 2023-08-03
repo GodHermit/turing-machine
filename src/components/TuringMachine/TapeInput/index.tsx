@@ -3,11 +3,19 @@
 import { useStore } from '@/_store';
 import Input from '@/components/Input';
 import { createAlphabet, validateString } from '@/lib/alphabet';
+import TuringMachine from '@/lib/turingMachine';
 import { useMemo, useState } from 'react';
 
 export default function TapeInput() {
 	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
 	const [value, setValue] = useState(machineState.input);
+
+	/**
+	 * Alphabet with blank symbol
+	 */
+	const alphabet = useMemo(() => (
+		[...machineState.alphabet, TuringMachine.BLANK_SYMBOL]
+	), [machineState.alphabet]);
 
 	/**
 	 * Rules for invalid input:
@@ -17,7 +25,7 @@ export default function TapeInput() {
 			// If input does not match the alphabet
 			if (
 				machineState.alphabet.length > 0 &&
-				!validateString(value, machineState.alphabet)
+				!validateString(value, alphabet)
 			) {
 				return {
 					value: true,
@@ -31,7 +39,8 @@ export default function TapeInput() {
 		},
 		[
 			value,
-			machineState.alphabet
+			machineState.alphabet,
+			alphabet
 		]
 	);
 
@@ -65,7 +74,7 @@ export default function TapeInput() {
 
 		if (
 			machineState.alphabet.length > 0 && // If alphabet is created
-			!validateString(value, machineState.alphabet) // If input does not match the alphabet
+			!validateString(value, alphabet) // If input does not match the alphabet
 		) {
 			return;
 		}
