@@ -1,4 +1,5 @@
-import { Instruction } from '@/lib/turingMachine/types';
+import { defaultOptions } from '@/lib/turingMachine';
+import { Instruction, TuringMachineOptions } from '@/lib/turingMachine/types';
 import { StateCreator } from 'zustand';
 
 export interface MachineState {
@@ -15,6 +16,10 @@ export interface MachineState {
 	 */
 	input: string;
 	/**
+	 * The instructions of the Turing machine.
+	 */
+	instructions: Instruction[];
+	/**
 	 * The current tape value.
 	 */
 	currentTapeValue: string;
@@ -25,9 +30,13 @@ export interface MachineState {
 	 */
 	currentHeadPos: number;
 	/**
-	 * The instructions of the Turing machine.
+	 * The current state of the Turing machine.
 	 */
-	instructions: Instruction[];
+	currentState: string;
+	/**
+	 * The options of the Turing machine.
+	 */
+	options: TuringMachineOptions;
 }
 
 interface MachineActions {
@@ -38,9 +47,11 @@ export const initialMachineState: MachineState = {
 	alphabet: [],
 	states: ['q0'],
 	input: '',
+	instructions: [],
 	currentTapeValue: '',
 	currentHeadPos: 0,
-	instructions: []
+	currentState: 'q0',
+	options: defaultOptions
 };
 
 export type MachineStateSlice = { machineState: MachineState } & MachineActions;

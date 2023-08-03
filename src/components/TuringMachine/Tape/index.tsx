@@ -51,8 +51,14 @@ export default function Tape() {
 		// Reverse step if natural scrolling is enabled
 		const naturalDirection = settings.naturalScrolling ? -1 : 1;
 
+		const newHeadPos = machineState.currentHeadPos + step * naturalDirection;
+
 		setMachineState({
-			currentHeadPos: machineState.currentHeadPos + step * naturalDirection,
+			currentHeadPos: newHeadPos,
+			options: {
+				...machineState.options,
+				initialPosition: newHeadPos,
+			}
 		});
 	}
 
@@ -102,6 +108,10 @@ export default function Tape() {
 							placeholder={settings.showBlankSymbol ? settings.blankSymbol : ''}
 							onClick={() => setMachineState({
 								currentHeadPos: cellId,
+								options: {
+									...machineState.options,
+									initialPosition: cellId,
+								}
 							})}
 						/>
 					)
