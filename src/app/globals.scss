@@ -50,11 +50,21 @@ $input-placeholder-color: $gray-500;
 @import "~bootstrap/scss/forms";
 @import "~bootstrap/scss/buttons";
 @import "~bootstrap/scss/tables";
+@import "~bootstrap/scss/alert";
 
 // 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
 @import "~bootstrap/scss/utilities/api";
 
 // 8. Add additional custom code here
+
+.btn-primary {
+	@include button-variant($background: $black,
+		$border: $black,
+		$color: $white,
+		$hover-background: $gray-900,
+		$hover-border: $gray-900,
+		$hover-color: $white);
+}
 
 .btn-secondary {
 	@include button-variant($background: $white,

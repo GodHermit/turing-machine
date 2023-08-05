@@ -1,6 +1,7 @@
 'use client';
 
 import { useStore } from '@/_store';
+import TuringMachine from '@/lib/turingMachine';
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 import { MdArrowBackIosNew, MdArrowForwardIos } from 'react-icons/md';
@@ -51,8 +52,14 @@ export default function Tape() {
 		// Reverse step if natural scrolling is enabled
 		const naturalDirection = settings.naturalScrolling ? -1 : 1;
 
+		const newHeadPos = machineState.currentHeadPos + step * naturalDirection;
+
 		setMachineState({
-			currentHeadPos: machineState.currentHeadPos + step * naturalDirection,
+			currentHeadPos: newHeadPos,
+			options: {
+				...machineState.options,
+				initialPosition: newHeadPos,
+			}
 		});
 	}
 
@@ -97,11 +104,15 @@ export default function Tape() {
 								i === middleCellIndex && styles.active,
 							)}
 							maxLength={1}
-							value={value}
+							value={value.replace(TuringMachine.BLANK_SYMBOL, '')}
 							readOnly
 							placeholder={settings.showBlankSymbol ? settings.blankSymbol : ''}
 							onClick={() => setMachineState({
 								currentHeadPos: cellId,
+								options: {
+									...machineState.options,
+									initialPosition: cellId,
+								}
 							})}
 						/>
 					)

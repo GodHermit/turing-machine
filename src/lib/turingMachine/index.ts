@@ -1,5 +1,12 @@
 import { Direction, Instruction, TuringMachineOptions } from './types';
 
+export const defaultOptions: TuringMachineOptions = {
+	initialState: 'q0',
+	initialPosition: 0,
+	finalState: '!',
+	maxSteps: 1000
+};
+
 /**
  * A Turing Machine simulator
  */
@@ -21,7 +28,7 @@ export default class TuringMachine {
 	 */
 	public static BLANK_SYMBOL = 'λ';
 	/**
-	 * The input of the machine
+	 * The input tape value
 	 */
 	private input: string;
 	/**
@@ -32,18 +39,32 @@ export default class TuringMachine {
 	 * The options of the machine
 	 */
 	private options: TuringMachineOptions = {
-		initialState: 'q0',
-		initialPosition: 0,
-		finalState: '!',
-		maxSteps: 1000
+		initialState: defaultOptions.initialState,
+		initialPosition: defaultOptions.initialPosition,
+		finalState: defaultOptions.finalState,
+		maxSteps: defaultOptions.maxSteps
 	};
 	/**
-	 * The current state of the machine
+	 * The current condition of the machine
 	 */
 	private current = {
+		/**
+		 * The current tape value
+		 */
 		tapeValue: '',
-		state: 'q0', // Default
-		position: 0 // Default
+		/**
+		 * The current state
+		 */
+		state: this.options.initialState,
+		/**
+		 * The current head position relative to the tape value
+		 * @description The head position can be negative, but only blank symbols exist before 0
+		 */
+		headPosition: this.options.initialPosition,
+		/**
+		 * The current iteration of the machine
+		 */
+		step: 0
 	}
 
 	/**
@@ -71,13 +92,63 @@ export default class TuringMachine {
 
 		if (options) {
 			if (options.initialState) this.current.state = options.initialState;
-			if (options.initialPosition) this.current.position = options.initialPosition;
-
-			this.options = {
-				...this.options,
-				...options
-			};
+			if (options.initialPosition) this.current.headPosition = options.initialPosition;
+			this.setOptions(options);
 		}
+	}
+
+	public setInput(input: string) {
+		this.input = input;
+	}
+
+	public getInput(): string {
+		return this.input;
+	}
+
+	public setInstructions(instructions: Instruction[]) {
+		this.instructions = instructions;
+	}
+
+	public getInstructions(): Instruction[] {
+		return this.instructions;
+	}
+
+	public setOptions(options: Partial<TuringMachineOptions>) {
+		this.options = {
+			...this.options,
+			...options
+		};
+	}
+
+	public getOptions(): TuringMachineOptions {
+		return this.options;
+	}
+
+	public setCurrentCondition(condition: Partial<typeof this.current>) {
+		this.current = {
+			...this.current,
+			...condition
+		};
+	}
+
+	/**
+	 * Gets the current condition of the machine
+	 * @returns The current condition of the machine
+	 */
+	public getCurrentCondition() {
+		const symbol = this.current.tapeValue[this.current.headPosition] || TuringMachine.BLANK_SYMBOL;
+
+		let instruction;
+		try {
+			instruction = this.getInstruction(this.current.state, symbol);
+		} catch { }
+
+		return {
+			...this.current,
+			symbol,
+			instruction,
+			finalCondition: this.current.state === this.options.finalState
+		};
 	}
 
 	/**
@@ -93,11 +164,17 @@ export default class TuringMachine {
 	 * @returns The final tape value
 	 */
 	public run(): string {
+		this.current.step = 0;
 		let result = this.current.tapeValue;
 		for (var i = 0; i < this.options.maxSteps; i++) {
 			result = this.step();
+			// Check if final state reached
 			if (this.current.state === this.options.finalState) {
 				break;
+			}
+			// Check if maximum number of steps reached
+			if (i === this.options.maxSteps - 1) {
+				throw new Error(`Maximum number of steps reached (${this.options.maxSteps})`);
 			}
 		}
 		return result;
@@ -109,8 +186,9 @@ export default class TuringMachine {
 	public reset() {
 		this.current = {
 			tapeValue: this.input,
-			state: 'q0',
-			position: 0
+			state: this.options.initialState,
+			headPosition: this.options.initialPosition,
+			step: 0
 		}
 		TuringMachine.reset();
 	}
@@ -127,24 +205,30 @@ export default class TuringMachine {
 	 * @returns The new tape value
 	 */
 	public step(): string {
-		let { state, position } = this.current;
-		let symbol = this.input[position] || TuringMachine.BLANK_SYMBOL;
+		let { state, headPosition, tapeValue } = this.current;
 
-		if (this.current.state === this.options.finalState) {
-			return this.current.tapeValue;
+		// If final state reached
+		if (state === this.options.finalState) {
+			return tapeValue;
 		}
+
+		// If head position is negative
+		if (headPosition < 0) {
+			tapeValue = tapeValue.padStart( // Pad start with blank symbols
+				tapeValue.length + Math.abs(headPosition),
+				TuringMachine.BLANK_SYMBOL
+			);
+			headPosition = 0; // Set head position to 0 (only blank symbols exist before 0)
+
+			this.current.tapeValue = tapeValue;
+			this.current.headPosition = headPosition;
+		}
+
+		// Get symbol
+		let symbol = tapeValue[headPosition] || TuringMachine.BLANK_SYMBOL;
 
 		// Get instruction
-		let currentInstruction: Instruction | undefined;
-		for (const instruction of this.instructions) {
-			if (instruction.state === state && instruction.symbol === symbol) {
-				currentInstruction = instruction;
-				break;
-			}
-		}
-		if (!currentInstruction) {
-			throw new Error(`No instruction found for state '${state}' and symbol '${symbol}'`);
-		}
+		let currentInstruction = this.getInstruction(state, symbol);
 
 		return this.executeInstruction(currentInstruction);
 	}
@@ -155,15 +239,27 @@ export default class TuringMachine {
 	 * @returns The new tape value
 	 */
 	private executeInstruction(instruction: Instruction): string {
-		const { state, move, newState, newSymbol } = instruction;
+		const { state, move, newState } = instruction;
+		let { newSymbol } = instruction;
 
 		if (state === this.options.finalState) {
 			return this.current.tapeValue;
 		}
 
-		this.current.tapeValue = this.current.tapeValue.substring(0, this.current.position) + newSymbol + this.current.tapeValue.substring(this.current.position + 1);
-		this.current.state = newState;
-		this.current.position = this.getNewHeadPosition(move);
+		let virtualTape = this.current.tapeValue;
+
+		// If next head position is negative
+		if (this.getNewHeadPosition(move) < 0) {
+			virtualTape = TuringMachine.BLANK_SYMBOL + virtualTape; // Pad start with blank symbol
+			this.current.headPosition = 1; // Offset head position by 1 to account for new blank symbol
+		}
+
+		this.current = {
+			tapeValue: virtualTape.substring(0, this.current.headPosition) + newSymbol + virtualTape.substring(this.current.headPosition + 1),
+			state: newState,
+			headPosition: this.getNewHeadPosition(move),
+			step: this.current.step + 1
+		};
 
 		return this.current.tapeValue;
 	}
@@ -176,13 +272,32 @@ export default class TuringMachine {
 	private getNewHeadPosition(direction: Direction): number {
 		switch (direction) {
 			case TuringMachine.LEFT:
-				return this.current.position - 1;
+				return this.current.headPosition - 1;
 			case TuringMachine.RIGHT:
-				return this.current.position + 1;
+				return this.current.headPosition + 1;
 			case TuringMachine.NONE:
-				return this.current.position;
+				return this.current.headPosition;
 			default:
 				throw new Error(`Invalid move '${direction}'`);
 		}
+	}
+
+	/**
+	 * Gets the instruction for a given state and symbol
+	 * @param state 
+	 * @param symbol  
+	 * @returns The instruction for the given state and symbol
+	 * @throws Will throw an error if no instruction is found
+	 */
+	private getInstruction(state: string, symbol: string): Instruction {
+		const instruction = this.instructions.find(instruction => (
+			instruction.state === state && instruction.symbol === symbol
+		));
+
+		if (!instruction) {
+			throw new Error(`No instruction found for state '${state}' and symbol '${symbol}'`);
+		}
+
+		return instruction;
 	}
 }

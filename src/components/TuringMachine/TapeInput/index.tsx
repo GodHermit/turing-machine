@@ -3,10 +3,19 @@
 import { useStore } from '@/_store';
 import Input from '@/components/Input';
 import { createAlphabet, validateString } from '@/lib/alphabet';
-import { useMemo } from 'react';
+import TuringMachine from '@/lib/turingMachine';
+import { useMemo, useState } from 'react';
 
 export default function TapeInput() {
 	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
+	const [value, setValue] = useState(machineState.input);
+
+	/**
+	 * Alphabet with blank symbol
+	 */
+	const alphabet = useMemo(() => (
+		[...machineState.alphabet, TuringMachine.BLANK_SYMBOL]
+	), [machineState.alphabet]);
 
 	/**
 	 * Rules for invalid input:
@@ -16,7 +25,7 @@ export default function TapeInput() {
 			// If input does not match the alphabet
 			if (
 				machineState.alphabet.length > 0 &&
-				!validateString(machineState.input, machineState.alphabet)
+				!validateString(value, alphabet)
 			) {
 				return {
 					value: true,
@@ -29,8 +38,9 @@ export default function TapeInput() {
 			};
 		},
 		[
-			machineState.input,
-			machineState.alphabet
+			value,
+			machineState.alphabet,
+			alphabet
 		]
 	);
 
@@ -40,13 +50,13 @@ export default function TapeInput() {
 	const isWriteToTapeDisabled = useMemo(
 		() => (
 			isInputInvalid?.value || // If input does not match the alphabet
-			machineState.currentTapeValue === machineState.input || // If input is already written to the tape
+			machineState.currentTapeValue === value || // If input is already written to the tape
 			new Set(machineState.alphabet).size !== machineState.alphabet.length // If alphabet has duplicate characters (this is the same rule as in AlphabetInput
 		),
 		[
 			isInputInvalid,
 			machineState.currentTapeValue,
-			machineState.input,
+			value,
 			machineState.alphabet
 		]
 	);
@@ -58,20 +68,25 @@ export default function TapeInput() {
 		// If alphabet is not yet created, create it
 		if (machineState.alphabet.length === 0) {
 			setMachineState({
-				alphabet: createAlphabet(machineState.input),
+				alphabet: createAlphabet(value),
 			});
 		}
 
 		if (
 			machineState.alphabet.length > 0 && // If alphabet is created
-			!validateString(machineState.input, machineState.alphabet) // If input does not match the alphabet
+			!validateString(value, alphabet) // If input does not match the alphabet
 		) {
 			return;
 		}
 
 		setMachineState({
-			currentTapeValue: machineState.input,
+			input: value,
+			currentTapeValue: value,
 			currentHeadPos: 0,
+			options: {
+				...machineState.options,
+				initialPosition: 0,
+			}
 		});
 	};
 
@@ -80,10 +95,10 @@ export default function TapeInput() {
 			<div className='col-9'>
 				<Input
 					label='Input:'
-					value={machineState.input}
+					value={value}
 					isInvalid={isInputInvalid?.value}
 					invalidFeedback={isInputInvalid?.feedback}
-					onChange={e => setMachineState({ input: e.target.value })}
+					onChange={e => setValue(e.target.value)}
 				/>
 			</div>
 			<div className='col-3 d-grid align-items-end'>
@@ -92,7 +107,10 @@ export default function TapeInput() {
 					onClick={handleWriteToTape}
 					disabled={isWriteToTapeDisabled}
 				>
-					Write to tape
+					{(value.length <= 0 && !isWriteToTapeDisabled) ?
+						'Clear tape' :
+						'Write to tape'
+					}
 				</button>
 			</div>
 		</div>
