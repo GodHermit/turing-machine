@@ -2,6 +2,7 @@
 
 import { useStore } from '@/_store';
 import Input from '@/components/Input';
+import TuringMachine from '@/lib/turingMachine';
 import { useMemo } from 'react';
 
 export default function AlphabetInput() {
@@ -20,6 +21,13 @@ export default function AlphabetInput() {
 				return {
 					value: true,
 					feedback: 'Alphabet cannot have duplicate characters.',
+				}
+			}
+
+			if (machineState.alphabet.includes(TuringMachine.BLANK_SYMBOL)) {
+				return {
+					value: true,
+					feedback: `Blank symbol (${TuringMachine.BLANK_SYMBOL}) already exists in alphabet.`,
 				}
 			}
 			return {
