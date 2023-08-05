@@ -47,9 +47,8 @@ export default function MachineControls() {
 	 */
 	useEffect(() => {
 		if (
-			machine.getCurrentCondition().step === 0 && // If machine is not running
-			machineState.currentTapeValue !== machine.getInput() && // If input has changed
-			machineState.input === machineState.currentTapeValue // If input is equal to current tape value
+			machineState.input === machineState.currentTapeValue && // If input is equal to current tape value
+			machineState.input !== machine.getCurrentCondition().tapeValue // If input is not equal to current tape value
 		) {
 			machine.setInput(machineState.currentTapeValue);
 			machine.reset();
