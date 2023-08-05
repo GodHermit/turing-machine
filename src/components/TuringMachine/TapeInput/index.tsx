@@ -83,6 +83,10 @@ export default function TapeInput() {
 			input: value,
 			currentTapeValue: value,
 			currentHeadPos: 0,
+			options: {
+				...machineState.options,
+				initialPosition: 0,
+			}
 		});
 	};
 
