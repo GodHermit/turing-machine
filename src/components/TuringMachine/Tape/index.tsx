@@ -1,6 +1,7 @@
 'use client';
 
 import { useStore } from '@/_store';
+import TuringMachine from '@/lib/turingMachine';
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
 import { MdArrowBackIosNew, MdArrowForwardIos } from 'react-icons/md';
@@ -103,7 +104,7 @@ export default function Tape() {
 								i === middleCellIndex && styles.active,
 							)}
 							maxLength={1}
-							value={value}
+							value={value.replace(TuringMachine.BLANK_SYMBOL, '')}
 							readOnly
 							placeholder={settings.showBlankSymbol ? settings.blankSymbol : ''}
 							onClick={() => setMachineState({
