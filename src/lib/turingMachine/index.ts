@@ -48,9 +48,22 @@ export default class TuringMachine {
 	 * The current condition of the machine
 	 */
 	private current = {
+		/**
+		 * The current tape value
+		 */
 		tapeValue: '',
+		/**
+		 * The current state
+		 */
 		state: this.options.initialState,
+		/**
+		 * The current head position relative to the tape value
+		 * @description The head position can be negative, but only blank symbols exist before 0
+		 */
 		headPosition: this.options.initialPosition,
+		/**
+		 * The current iteration of the machine
+		 */
 		step: 0
 	}
 
@@ -192,12 +205,27 @@ export default class TuringMachine {
 	 * @returns The new tape value
 	 */
 	public step(): string {
-		let { state, headPosition } = this.current;
-		let symbol = this.current.tapeValue[headPosition] || TuringMachine.BLANK_SYMBOL;
+		let { state, headPosition, tapeValue } = this.current;
 
-		if (this.current.state === this.options.finalState) {
-			return this.current.tapeValue;
+		// If final state reached
+		if (state === this.options.finalState) {
+			return tapeValue;
 		}
+
+		// If head position is negative
+		if (headPosition < 0) {
+			tapeValue = tapeValue.padStart( // Pad start with blank symbols
+				tapeValue.length + Math.abs(headPosition),
+				TuringMachine.BLANK_SYMBOL
+			);
+			headPosition = 0; // Set head position to 0 (only blank symbols exist before 0)
+
+			this.current.tapeValue = tapeValue;
+			this.current.headPosition = headPosition;
+		}
+
+		// Get symbol
+		let symbol = tapeValue[headPosition] || TuringMachine.BLANK_SYMBOL;
 
 		// Get instruction
 		let currentInstruction = this.getInstruction(state, symbol);
@@ -218,13 +246,20 @@ export default class TuringMachine {
 			return this.current.tapeValue;
 		}
 
-		// FIXME: support negative index for head position
+		let virtualTape = this.current.tapeValue;
+
+		// If next head position is negative
+		if (this.getNewHeadPosition(move) < 0) {
+			virtualTape = TuringMachine.BLANK_SYMBOL + virtualTape; // Pad start with blank symbol
+			this.current.headPosition = 1; // Offset head position by 1 to account for new blank symbol
+		}
+
 		this.current = {
-			tapeValue: this.current.tapeValue.substring(0, this.current.headPosition) + newSymbol + this.current.tapeValue.substring(this.current.headPosition + 1),
+			tapeValue: virtualTape.substring(0, this.current.headPosition) + newSymbol + virtualTape.substring(this.current.headPosition + 1),
 			state: newState,
 			headPosition: this.getNewHeadPosition(move),
 			step: this.current.step + 1
-		}
+		};
 
 		return this.current.tapeValue;
 	}
