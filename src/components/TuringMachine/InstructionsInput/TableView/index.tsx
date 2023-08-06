@@ -61,8 +61,8 @@ export default function TableView() {
 					<thead>
 						<tr>
 							<th scope='row col'></th>
-							{alphabet.map((symbol, i) => (
-								<th scope='col' key={i}>{symbol}</th>
+							{alphabet.map((symbol) => (
+								<th scope='col' key={symbol}>{symbol}</th>
 							))}
 						</tr>
 					</thead>
@@ -76,8 +76,8 @@ export default function TableView() {
 								</td>
 							</tr>
 						)}
-						{machineState.states.map((state, i) => (
-							<tr key={i}>
+						{machineState.states.map((state) => (
+							<tr key={state}>
 								<th
 									scope='row'
 									className='p-0 align-middle'
@@ -98,9 +98,9 @@ export default function TableView() {
 										<MdClose />
 									</button>
 								</th>
-								{alphabet.map((symbol, j) => (
+								{alphabet.map((symbol) => (
 									<TableViewCell
-										key={j}
+										key={state + symbol}
 										instructionState={state}
 										instructionSymbol={symbol}
 									/>
