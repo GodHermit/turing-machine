@@ -3,11 +3,15 @@
 import { useStore } from '@/_store';
 import Input from '@/components/Input';
 import TuringMachine from '@/lib/turingMachine';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function AlphabetInput() {
 	const [machineState, setMachineAlphabet] = useStore(state => [state.machineState, state.setMachineAlphabet]);
 	const [alphabet, setAlphabet] = useState(machineState.alphabet.join(''));
+
+	useEffect(() => {
+		setAlphabet(machineState.alphabet.join(''));
+	}, [machineState.alphabet]);
 
 	/**
 	 * Rules for invalid input:
