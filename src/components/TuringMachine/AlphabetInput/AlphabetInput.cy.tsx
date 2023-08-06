@@ -1,3 +1,4 @@
+import { useStore } from '@/_store';
 import '@/app/globals.scss';
 import TuringMachine from '@/lib/turingMachine';
 import TableView from '../InstructionsInput/TableView';
@@ -11,6 +12,13 @@ describe('<AlphabetInput />', () => {
 
 	it('renders', () => {
 		cy.get('.form-label').should('have.text', 'Alphabet:');
+	});
+
+	it('updates value when alphabet is changed in store', () => {
+		let alphabet = '01';
+		cy.log('**Change alphabet in store**');
+		useStore.getState().setMachineAlphabet(alphabet.split(''));
+		cy.findByLabelText('Alphabet:').should('have.value', alphabet);
 	});
 
 	it('displays an error message when the duplicate characters are entered', () => {
