@@ -3,10 +3,11 @@
 import { useStore } from '@/_store';
 import Input from '@/components/Input';
 import TuringMachine from '@/lib/turingMachine';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function AlphabetInput() {
-	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
+	const [machineState, setMachineAlphabet] = useStore(state => [state.machineState, state.setMachineAlphabet]);
+	const [alphabet, setAlphabet] = useState(machineState.alphabet.join(''));
 
 	/**
 	 * Rules for invalid input:
@@ -15,8 +16,8 @@ export default function AlphabetInput() {
 		(): { value: boolean, feedback: string } => {
 			// If alphabet has duplicate characters
 			if (
-				machineState.alphabet.length > 0 &&
-				new Set(machineState.alphabet).size !== machineState.alphabet.length
+				alphabet.length > 0 &&
+				new Set(alphabet).size !== alphabet.length
 			) {
 				return {
 					value: true,
@@ -24,7 +25,7 @@ export default function AlphabetInput() {
 				}
 			}
 
-			if (machineState.alphabet.includes(TuringMachine.BLANK_SYMBOL)) {
+			if (alphabet.includes(TuringMachine.BLANK_SYMBOL)) {
 				return {
 					value: true,
 					feedback: `Blank symbol (${TuringMachine.BLANK_SYMBOL}) already exists in alphabet.`,
@@ -36,18 +37,32 @@ export default function AlphabetInput() {
 			};
 		},
 		[
-			machineState.alphabet
+			alphabet
 		]
 	);
+
+	const handleAlphabetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		let value = e.target.value;
+		setAlphabet(value);
+
+		if (
+			new Set(value.split('')).size !== value.length || // If alphabet has duplicate characters
+			value.includes(TuringMachine.BLANK_SYMBOL) // If alphabet has blank symbol
+		) {
+			return;
+		}
+
+		setMachineAlphabet(value.split(''));
+	};
 
 	return (
 		<div className='mb-4'>
 			<Input
 				label='Alphabet:'
-				value={machineState.alphabet.join('')}
+				value={alphabet}
+				onChange={handleAlphabetChange}
 				isInvalid={isInputInvalid.value}
 				invalidFeedback={isInputInvalid.feedback}
-				onChange={e => setMachineState({ alphabet: e.target.value.split('') })}
 			/>
 		</div>
 	);

@@ -41,6 +41,7 @@ export interface MachineState {
 
 interface MachineActions {
 	setMachineState: (settings: Partial<MachineState>) => void;
+	setMachineAlphabet: (alphabet: string[]) => void;
 }
 
 export const initialMachineState: MachineState = {
@@ -58,5 +59,23 @@ export type MachineStateSlice = { machineState: MachineState } & MachineActions;
 
 export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) => ({
 	machineState: initialMachineState,
-	setMachineState: (state) => set((s) => ({ machineState: { ...s.machineState, ...state } }))
+	setMachineState: (state) => set(s => ({ machineState: { ...s.machineState, ...state } })),
+	setMachineAlphabet: (alphabet) => set(s => {
+		let instructions = s.machineState.instructions;
+
+		// Remove instructions that are not in the new alphabet
+		instructions = instructions.filter(instruction => {
+			const { symbol, newSymbol } = instruction;
+
+			return alphabet.includes(symbol) && alphabet.includes(newSymbol);
+		});
+
+		return {
+			machineState: {
+				...s.machineState,
+				alphabet: alphabet,
+				instructions: instructions
+			}
+		};
+	})
 });
