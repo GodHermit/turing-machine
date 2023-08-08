@@ -2,6 +2,7 @@
 
 import { useStore } from '@/_store';
 import TuringMachine from '@/lib/turingMachine';
+import clsx from 'clsx';
 import { MdClose } from 'react-icons/md';
 import { useDebounce } from 'usehooks-ts';
 import styles from '../InstructionInput.module.scss';
@@ -32,7 +33,6 @@ export default function TableView() {
 	 * @param name Current name of the state
 	 * @param newName New name of the state
 	 */
-	//FIXME: use state index instead of name
 	const renameState = (name: string, newName: string) => {
 		// If the new name is already in use, don't change anything
 		if (machineState.states.includes(newName)) return;
@@ -58,6 +58,7 @@ export default function TableView() {
 	const deleteState = (stateName: string) => {
 		setMachineState({
 			states: machineState.states.filter(state => state !== stateName),
+			instructions: machineState.instructions.filter(instruction => instruction.state !== stateName && instruction.newState !== stateName),
 		});
 	};
 
@@ -91,7 +92,10 @@ export default function TableView() {
 								>
 									<input
 										type='text'
-										className='form-control fw-bold text-center d-block h-100 border-0'
+										className={clsx(
+											'form-control fw-bold text-center d-block h-100 border-0',
+											machineState.states.filter(s => s === state).length > 1 && 'is-invalid',
+										)}
 										value={state}
 										onChange={e => renameState(state, e.target.value)}
 										placeholder='Enter state'
