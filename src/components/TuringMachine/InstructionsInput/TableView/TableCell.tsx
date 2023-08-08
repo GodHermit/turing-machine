@@ -2,7 +2,7 @@ import { useStore } from '@/_store';
 import TuringMachine from '@/lib/turingMachine';
 import { Direction, Instruction } from '@/lib/turingMachine/types';
 import clsx from 'clsx';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { useDebounce } from 'usehooks-ts';
 
 /**
@@ -40,45 +40,46 @@ interface TableViewCellProps {
 
 export default function TableViewCell(props: TableViewCellProps) {
 	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
-	const instruction = machineState.instructions.find(instruction => (
-		instruction.state === props.instructionState &&
-		instruction.symbol === props.instructionSymbol
-	));
-	const defaultValue = instruction ? `${instruction.newSymbol} ${instruction.move} ${instruction.newState}` : '';
+	const debouncedMachineState = useDebounce(machineState, 500);
+
+	const instruction = useMemo<Instruction | undefined>(
+		() => machineState.instructions.find(instruction => (
+			instruction.state === props.instructionState &&
+			instruction.symbol === props.instructionSymbol
+		)),
+		[machineState.instructions, props.instructionState, props.instructionSymbol]
+	);
+	const defaultValue = instruction
+		? `${instruction.newSymbol} ${instruction.move} ${instruction.newState}`
+		: '';
+
 	const [value, setValue] = useState<string>(defaultValue);
+
 	const [isInvalid, setIsInvalid] = useState<boolean>(false);
 	const debouncedIsInvalid = useDebounce(isInvalid, 1000);
-	const debouncedMachineState = useDebounce(machineState, 500);
-	const alphabet = [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL];
-	const states = [...debouncedMachineState.states, '!'];
+
+	const alphabet = useMemo(
+		() => [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL],
+		[debouncedMachineState.alphabet]
+	);
+	const states = useMemo(
+		() => [...debouncedMachineState.states, '!'],
+		[debouncedMachineState.states]
+	);
 
 	/**
-	 * Update value when state name changes
+	 * Sync input value with the instruction from the store
 	 */
 	useEffect(() => {
-		// If the value is empty
-		if (value.length <= 0) {
-			return;
-		}
+		// If value is invalid
+		if (isInvalid) return;
 
-		// If the value is invalid
-		if (isInvalid) {
-			return;
-		}
+		// If value is same as default value
+		if (value === defaultValue) return;
 
-		const [newSymbol, move, newState] = value.split(' ');
-		if (newState) {
-
-			if (instruction && instruction.newState !== newState) {
-				setValue(`${newSymbol} ${move} ${instruction.newState}`);
-			}
-		}
-	}, [
-		value,
-		isInvalid,
-		instruction,
-		debouncedMachineState.instructions
-	]);
+		console.log('sync');
+		setValue(defaultValue);
+	}, [defaultValue, value, isInvalid]);
 
 	/**
 	 * Add instruction to the machine state
@@ -126,6 +127,7 @@ export default function TableViewCell(props: TableViewCellProps) {
 		// If the value is shortened instruction
 		switch (e.target.value) {
 			case machineState.options.finalState:
+				setValue(`${props.instructionSymbol} ${TuringMachine.NONE} ${machineState.options.finalState}`);
 				addInstruction({
 					state: props.instructionState,
 					symbol: props.instructionSymbol,
@@ -138,6 +140,7 @@ export default function TableViewCell(props: TableViewCellProps) {
 			case TuringMachine.LEFT:
 			case TuringMachine.RIGHT:
 			case TuringMachine.NONE:
+				setValue(`${props.instructionSymbol} ${e.target.value} ${props.instructionState}`);
 				addInstruction({
 					state: props.instructionState,
 					symbol: props.instructionSymbol,
@@ -179,5 +182,5 @@ export default function TableViewCell(props: TableViewCellProps) {
 				onChange={handleValueChange}
 			/>
 		</td>
-	)
+	);
 }

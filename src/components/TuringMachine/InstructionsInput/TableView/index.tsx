@@ -16,8 +16,14 @@ export default function TableView() {
 	 * Add a new state to the machine
 	 */
 	const addState = () => {
+		let newState = `q${machineState.states.length}`; // New state name
+
+		// If the new state name is already in use, leave it empty
+		if (machineState.states.includes(newState)) {
+			newState = '';
+		}
 		setMachineState({
-			states: [...machineState.states, `q${machineState.states.length}`],
+			states: [...machineState.states, newState],
 		});
 	};
 
@@ -26,12 +32,13 @@ export default function TableView() {
 	 * @param name Current name of the state
 	 * @param newName New name of the state
 	 */
+	//FIXME: use state index instead of name
 	const renameState = (name: string, newName: string) => {
 		// If the new name is already in use, don't change anything
 		if (machineState.states.includes(newName)) return;
 
 		// Update the state name in the instructions
-		const newInstructions = new Array(...machineState.instructions)
+		const newInstructions = machineState.instructions
 			.map(instruction => {
 				if (instruction.state === name) instruction.state = newName;
 				if (instruction.newState === name) instruction.newState = newName;
@@ -76,8 +83,8 @@ export default function TableView() {
 								</td>
 							</tr>
 						)}
-						{machineState.states.map((state) => (
-							<tr key={state}>
+						{machineState.states.map((state, i) => (
+							<tr key={i}>
 								<th
 									scope='row'
 									className='p-0 align-middle'
@@ -100,12 +107,11 @@ export default function TableView() {
 								</th>
 								{alphabet.map((symbol) => (
 									<TableViewCell
-										key={state + symbol}
+										key={i + symbol}
 										instructionState={state}
 										instructionSymbol={symbol}
 									/>
-								)
-								)}
+								))}
 							</tr>
 						))}
 					</tbody>
