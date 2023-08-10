@@ -239,12 +239,8 @@ export default class TuringMachine {
 	 * @returns The new tape value
 	 */
 	private executeInstruction(instruction: Instruction): string {
-		const { state, move, newState } = instruction;
+		const { move, newState } = instruction;
 		let { newSymbol } = instruction;
-
-		if (state === this.options.finalState) {
-			return this.current.tapeValue;
-		}
 
 		let virtualTape = this.current.tapeValue;
 
