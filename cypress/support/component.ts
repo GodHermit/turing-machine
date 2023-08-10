@@ -37,3 +37,6 @@ Cypress.Commands.add('mount', mount)
 
 // Example use:
 // cy.mount(<MyComponent />)
+
+// https://github.com/bahmutov/cypress-code-coverage
+import '@bahmutov/cypress-code-coverage/support'
