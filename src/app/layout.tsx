@@ -31,7 +31,7 @@ export default function RootLayout({
 						<div className='col'>
 							<span>
 								Made with 🖤 by&nbsp;
-								<a href='http://godhermit.github.io' target='_blank' rel='noopener noreferrer'>Oleh Proidakov</a>
+								<a href='http://godhermit.github.io' target='_blank' rel='noopener noreferrer'>Oleh Proidakov</a>.
 							</span>
 						</div>
 					</div>
