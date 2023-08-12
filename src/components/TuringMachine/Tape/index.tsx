@@ -80,6 +80,7 @@ export default function Tape() {
 						'btn-secondary',
 						styles.tapeButton,
 					)}
+					aria-label='Move tape left'
 					onClick={() => handleTapeMove('left')}
 				>
 					<MdArrowBackIosNew />
@@ -124,6 +125,7 @@ export default function Tape() {
 						styles.tapeButton,
 					)}
 					onClick={() => handleTapeMove('right')}
+					aria-label='Move tape right'
 				>
 					<MdArrowForwardIos />
 				</button>
