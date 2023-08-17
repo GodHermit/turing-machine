@@ -136,23 +136,23 @@ export default function MachineControls() {
 	return (
 		<>
 			<p className='form-label'>Machine:</p>
-			<div className='mb-2'>
+			<div className='row gap-2 m-0'>
 				<button
-					className='btn btn-primary me-2'
+					className='col-12 col-md-4 btn btn-primary'
 					onClick={() => handleAction('run')}
 					disabled={isControlsDisabled}
 				>
 					Run
 				</button>
 				<button
-					className='btn btn-secondary me-2'
+					className='col btn btn-secondary'
 					onClick={() => handleAction('step')}
 					disabled={isControlsDisabled}
 				>
 					Make step
 				</button>
 				<button
-					className='btn btn-secondary'
+					className='col btn btn-secondary'
 					onClick={handleReset}
 					disabled={isResetDisabled}
 				>
@@ -160,12 +160,12 @@ export default function MachineControls() {
 				</button>
 			</div>
 			{machineState.currentState === machine.getOptions().finalState && (
-				<div className='alert alert-success mb-2' role='alert'>
+				<div className='alert alert-success mt-2 mb-0' role='alert'>
 					<b>Success!</b> Amount of iterations: {currentCondition.step}
 				</div>
 			)}
 			{machineError.isError && (
-				<div className='alert alert-danger' role='alert'>
+				<div className='alert alert-danger mt-2 mb-0' role='alert'>
 					<b>Error!</b> {machineError.message}
 				</div>
 			)}

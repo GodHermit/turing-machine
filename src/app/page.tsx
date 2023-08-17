@@ -52,8 +52,8 @@ export default function Page() {
 					<Tape />
 				</div>
 			</div>
-			<div className='row text-start'>
-				<div className='col-6'>
+			<div className='row row-cols-1 row-cols-lg-2 row-gap-4 flex-wrap-reverse text-start'>
+				<div className='col'>
 					<AlphabetInput />
 					<TapeInput />
 				</div>
