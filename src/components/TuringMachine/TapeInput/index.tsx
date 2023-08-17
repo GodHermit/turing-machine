@@ -91,8 +91,8 @@ export default function TapeInput() {
 	};
 
 	return (
-		<div className='row mb-4'>
-			<div className='col-9'>
+		<div className='row row-cols-1 row-cols-md-2 row-gap-2 mb-4'>
+			<div className='col col-md-8'>
 				<Input
 					label='Input:'
 					value={value}
@@ -101,7 +101,7 @@ export default function TapeInput() {
 					onChange={e => setValue(e.target.value)}
 				/>
 			</div>
-			<div className='col-3 d-grid align-items-end'>
+			<div className='col col-md-4 d-grid align-items-end'>
 				<button
 					className='btn btn-secondary'
 					onClick={handleWriteToTape}
