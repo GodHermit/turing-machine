@@ -85,9 +85,24 @@ export default class TuringMachine {
 	 * });
 	 * ```
 	 */
-	constructor(input: string, instructions: Instruction[], options?: Partial<TuringMachineOptions>) {
-		this.input = input;
-		this.current.tapeValue = input;
+	constructor(input?: string | TuringMachine, instructions: Instruction[] = [], options?: Partial<TuringMachineOptions>) {
+		// If input is a TuringMachine, copy its properties
+		if (input instanceof TuringMachine) {
+			this.input = input.getInput(); // Copy input
+			this.instructions = input.getInstructions(); // Copy instructions
+			this.options = input.getOptions(); // Copy options
+
+			const currentCondition = input.getCurrentCondition(); // Copy current condition
+			this.current.tapeValue = currentCondition.tapeValue;
+			this.current.state = currentCondition.state;
+			this.current.headPosition = currentCondition.headPosition;
+			this.current.step = currentCondition.step;
+			
+			return;
+		}
+
+		this.input = input || '';
+		this.current.tapeValue = input || '';
 		this.instructions = instructions;
 
 		if (options) {

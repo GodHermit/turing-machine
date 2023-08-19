@@ -7,8 +7,18 @@ import TuringMachine from '@/lib/turingMachine';
 import { useMemo, useState } from 'react';
 
 export default function TapeInput() {
-	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
-	const [value, setValue] = useState(machineState.input);
+	const [
+		machine,
+		machineState,
+		setMachineState,
+		setHeadPosition
+	] = useStore(state => [
+		state.machine,
+		state.machineState,
+		state.setMachineState,
+		state.setHeadPosition,
+	]);
+	const [value, setValue] = useState(machine.getInput());
 
 	/**
 	 * Alphabet with blank symbol
@@ -50,12 +60,12 @@ export default function TapeInput() {
 	const isWriteToTapeDisabled = useMemo(
 		() => (
 			isInputInvalid?.value || // If input does not match the alphabet
-			machineState.currentTapeValue === value || // If input is already written to the tape
+			machine.getCurrentCondition().tapeValue === value || // If input is already written to the tape
 			new Set(machineState.alphabet).size !== machineState.alphabet.length // If alphabet has duplicate characters (this is the same rule as in AlphabetInput
 		),
 		[
+			machine,
 			isInputInvalid,
-			machineState.currentTapeValue,
 			value,
 			machineState.alphabet
 		]
@@ -79,15 +89,13 @@ export default function TapeInput() {
 			return;
 		}
 
-		setMachineState({
-			input: value,
-			currentTapeValue: value,
-			currentHeadPos: 0,
-			options: {
-				...machineState.options,
-				initialPosition: 0,
-			}
+		const newMachine = new TuringMachine(machine);
+		newMachine.setInput(value);
+		newMachine.reset();
+		useStore.setState({
+			machine: newMachine,
 		});
+		setHeadPosition(0, true);
 	};
 
 	return (

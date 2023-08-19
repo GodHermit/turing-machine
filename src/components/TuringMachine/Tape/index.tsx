@@ -10,7 +10,7 @@ import styles from './Tape.module.scss';
 
 export default function Tape() {
 	const [visibleCells, setVisibleCells] = useState(1); // must be odd
-	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
+	const [machine, setHeadPosition] = useStore(state => [state.machine, state.setHeadPosition]);
 	const settings = useStore((state) => state.tapeSettings);
 	const tapeRef = useRef<HTMLDivElement>(null);
 	const windowSize = useWindowSize();
@@ -52,15 +52,9 @@ export default function Tape() {
 		// Reverse step if natural scrolling is enabled
 		const naturalDirection = settings.naturalScrolling ? -1 : 1;
 
-		const newHeadPos = machineState.currentHeadPos + step * naturalDirection;
+		const newHeadPos = machine.getCurrentCondition().headPosition + step * naturalDirection;
 
-		setMachineState({
-			currentHeadPos: newHeadPos,
-			options: {
-				...machineState.options,
-				initialPosition: newHeadPos,
-			}
-		});
+		setHeadPosition(newHeadPos, true);
 	}
 
 	return (
@@ -86,13 +80,14 @@ export default function Tape() {
 					<MdArrowBackIosNew />
 				</button>
 				{[...Array(visibleCells)].map((_, i) => {
+					const currentCondition = machine.getCurrentCondition();
 					// Get cell value (or empty string if not defined)
-					const value = machineState.currentTapeValue[
-						i - middleCellIndex + machineState.currentHeadPos
+					const value = currentCondition.tapeValue[
+						i - middleCellIndex + currentCondition.headPosition
 					] || '';
 
 					// Calculate cell id
-					const cellId = i - middleCellIndex + machineState.currentHeadPos;
+					const cellId = i - middleCellIndex + currentCondition.headPosition;
 
 					return (
 						<input
@@ -108,13 +103,7 @@ export default function Tape() {
 							value={value.replace(TuringMachine.BLANK_SYMBOL, '')}
 							readOnly
 							placeholder={settings.showBlankSymbol ? settings.blankSymbol : ''}
-							onClick={() => setMachineState({
-								currentHeadPos: cellId,
-								options: {
-									...machineState.options,
-									initialPosition: cellId,
-								}
-							})}
+							onClick={() => setHeadPosition(cellId, true)}
 						/>
 					)
 				})}

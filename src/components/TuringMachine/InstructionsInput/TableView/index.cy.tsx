@@ -58,29 +58,27 @@ describe('<TableView />', () => {
 		});
 
 		it('Table should display all instructions from the state', () => {
-			useStore.getState().setMachineState({
-				instructions: [
-					{
-						state: 'q0',
-						symbol: '0',
-						move: 'R',
-						newSymbol: '1',
-						newState: 'q0',
-					},
-					{
-						state: 'q0',
-						symbol: '1',
-						move: 'L',
-						newSymbol: '0',
-						newState: 'q0',
-					},
-				],
-			});
+			useStore.getState().setInstructions([
+				{
+					state: 'q0',
+					symbol: '0',
+					move: 'R',
+					newSymbol: '1',
+					newState: 'q0',
+				},
+				{
+					state: 'q0',
+					symbol: '1',
+					move: 'L',
+					newSymbol: '0',
+					newState: 'q0',
+				},
+			]);
 			cy.wait(1000);
 
 			const alphabet = [...useStore.getState().machineState.alphabet, TuringMachine.BLANK_SYMBOL];
 			const states = useStore.getState().machineState.states;
-			const instructions = useStore.getState().machineState.instructions;
+			const instructions = useStore.getState().machine.getInstructions();
 			cy
 				.get('tbody tr td input')
 				.each((input, i) => {
@@ -202,8 +200,8 @@ describe('<TableView />', () => {
 			useStore.getState().setMachineState({
 				alphabet: testAlphabet,
 				states: ['q0', 'q1'],
-				instructions: testInstructions
 			});
+			useStore.getState().setInstructions(testInstructions);
 
 			const newState = 'test';
 
@@ -211,7 +209,7 @@ describe('<TableView />', () => {
 				.findByDisplayValue('q0')
 				.type(`{selectAll}{backspace}${newState}`)
 				.then(() => {
-					expect(useStore.getState().machineState.instructions).to.deep.eq([
+					expect(useStore.getState().machine.getInstructions()).to.deep.eq([
 						{
 							state: newState,
 							symbol: '0',
@@ -286,8 +284,8 @@ describe('<TableView />', () => {
 		});
 
 		it('should delete a state from the store', () => {
-			useStore.getState().setMachineState({
-				instructions: [{ // This instruction should be deleted
+			useStore.getState().setInstructions([
+				{ // This instruction should be deleted
 					state: 'q0',
 					symbol: '0',
 					move: 'R',
@@ -305,8 +303,8 @@ describe('<TableView />', () => {
 					move: 'R',
 					newSymbol: '1',
 					newState: 'q1',
-				}]
-			});
+				}
+			]);
 
 			cy.wait(1000);
 
@@ -318,7 +316,7 @@ describe('<TableView />', () => {
 				.should('be.visible')
 				.click()
 				.then(() => {
-					expect(useStore.getState().machineState.instructions).to.deep.eq([{
+					expect(useStore.getState().machine.getInstructions()).to.deep.eq([{
 						state: 'q1',
 						symbol: '0',
 						move: 'R',

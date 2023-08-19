@@ -7,17 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 const objToStr = (obj: Object) => JSON.stringify(Object.values(obj));
 
 export default function MachineControls() {
-	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
-	/**
-	 * Machine instance
-	 */
-	const { current: machine } = useRef(
-		new TuringMachine(
-			machineState.currentTapeValue,
-			machineState.instructions,
-			machineState.options
-		)
-	);
+	const [machine] = useStore(state => [state.machine]);
 	/**
 	 * Machine current condition
 	 */
@@ -33,60 +23,14 @@ export default function MachineControls() {
 	 * Whether action buttons should be disabled
 	 */
 	const isControlsDisabled = useMemo(() => {
-		return machineState.currentState === machine.getOptions().finalState;
-	}, [machineState.currentState, machine]);
+		return machine.getCurrentCondition().finalCondition;
+	}, [machine]);
 	/**
 	 * Whether reset button should be disabled
 	 */
 	const isResetDisabled = useMemo(() => {
 		return currentCondition.step === 0;
 	}, [currentCondition.step]);
-
-	/**
-	 * Update machine instance when input has changed
-	 */
-	useEffect(() => {
-		if (
-			machineState.input === machineState.currentTapeValue && // If input is equal to current tape value
-			machineState.input !== machine.getCurrentCondition().tapeValue // If input is not equal to current tape value
-		) {
-			machine.setInput(machineState.currentTapeValue);
-			machine.reset();
-		}
-	}, [machine, machineState.input, machineState.currentTapeValue]);
-
-	/**
-	 * Update machine instance when instructions has changed
-	 */
-	useEffect(() => {
-		if (
-			objToStr(machineState.instructions) !== objToStr(machine.getInstructions())
-		) {
-			machine.setInstructions(machineState.instructions);
-		}
-	}, [machine, machineState.instructions]);
-
-	/**
-	 * Update machine instance when options has changed
-	 */
-	useEffect(() => {
-		if (
-			objToStr(machineState.options) !== objToStr(machine.getOptions()) // If options has changed
-		) {
-			machine.setOptions(machineState.options);
-		}
-
-		if (
-			// If initial head position has changed
-			machineState.options.initialPosition !== machine.getCurrentCondition().headPosition &&
-			// If head position is not equal to current head position
-			machineState.currentHeadPos !== machine.getCurrentCondition().headPosition
-		) {
-			machine.setCurrentCondition({
-				headPosition: machineState.currentHeadPos,
-			});
-		}
-	}, [machine, machineState.options, machineState.currentHeadPos]);
 
 	/**
 	 * Handle action button click
@@ -98,16 +42,13 @@ export default function MachineControls() {
 		}
 
 		try {
-			if (machineState.currentState === machine.getOptions().finalState) {
+			if (machine.getCurrentCondition().finalCondition) {
 				throw new Error('Machine has already finished');
 			}
-
-			const tapeValue = machine[action]();
-			const { headPosition, state } = machine.getCurrentCondition();
-			setMachineState({
-				currentTapeValue: tapeValue,
-				currentHeadPos: headPosition,
-				currentState: state
+			const newMachine = new TuringMachine(machine);
+			newMachine[action]();
+			useStore.setState({
+				machine: newMachine,
 			});
 		} catch (error: any) {
 			setMachineError({
@@ -121,15 +62,15 @@ export default function MachineControls() {
 	 * Handle reset button click
 	 */
 	const handleReset = () => {
-		machine.reset();
+		const newMachine = new TuringMachine(machine);
+		newMachine.reset();
+		useStore.setState({
+			machine: newMachine,
+		});
+
 		setMachineError({
 			isError: false,
 			message: '',
-		});
-		setMachineState({
-			currentTapeValue: machineState.input,
-			currentHeadPos: machineState.options.initialPosition,
-			currentState: machineState.options.initialState,
 		});
 	};
 
@@ -159,7 +100,7 @@ export default function MachineControls() {
 					Reset
 				</button>
 			</div>
-			{machineState.currentState === machine.getOptions().finalState && (
+			{machine.getCurrentCondition().finalCondition && (
 				<div className='alert alert-success mt-2 mb-0' role='alert'>
 					<b>Success!</b> Amount of iterations: {currentCondition.step}
 				</div>
