@@ -1,6 +1,7 @@
 import AlphabetInput from '@/components/TuringMachine/AlphabetInput';
 import InstructionsInput from '@/components/TuringMachine/InstructionsInput';
 import MachineControls from '@/components/TuringMachine/MachineControls';
+import MachineLogs from '@/components/TuringMachine/MachineLogs';
 import Tape from '@/components/TuringMachine/Tape';
 import TapeInput from '@/components/TuringMachine/TapeInput';
 import { Metadata } from 'next';
@@ -61,9 +62,14 @@ export default function Page() {
 					<MachineControls />
 				</div>
 			</div>
-			<div className='row text-start'>
+			<div className='row text-start mb-4'>
 				<div className='col'>
 					<InstructionsInput />
+				</div>
+			</div>
+			<div className='row text-start'>
+				<div className='col'>
+					<MachineLogs />
 				</div>
 			</div>
 		</>
