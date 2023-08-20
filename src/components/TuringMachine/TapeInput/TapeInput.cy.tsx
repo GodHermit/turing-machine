@@ -3,6 +3,7 @@ import { initialMachineState } from '@/_store/slices/machineStateSlice';
 import '@/app/globals.scss';
 import AlphabetInput from '../AlphabetInput';
 import TapeInput from './index';
+import TuringMachine from '@/lib/turingMachine';
 
 describe('<TapeInput />', () => {
 	beforeEach(() => {
@@ -12,6 +13,10 @@ describe('<TapeInput />', () => {
 			.as('tapeInput')
 			.clear();
 		useStore.getState().setMachineState(initialMachineState);
+
+		useStore.setState({
+			machine: new TuringMachine(),
+		}); // Reset the machine
 	});
 
 	it('renders', () => {
@@ -34,7 +39,7 @@ describe('<TapeInput />', () => {
 
 
 	it('writes to tape and clears tape', () => {
-		cy.spy(useStore.getState(), 'setMachineState').as('setMachineState');
+		cy.spy(useStore, 'setState').as('setState');
 		const value = '1010';
 
 		cy
@@ -47,23 +52,18 @@ describe('<TapeInput />', () => {
 			.click()
 			.should('be.disabled');
 
-		const options = useStore.getState().machineState.options;
+		// const options = useStore.getState().machineState.options;
 		cy
-			.get('@setMachineState')
+			.get('@setState')
 			.should('be.calledWith', {
-				input: value,
-				currentTapeValue: value,
-				currentHeadPos: 0,
-				options: {
-					...options,
-					initialPosition: 0,
-				}
+				machine: new TuringMachine(value),
 			})
 			.then(() => {
-				expect(useStore.getState().machineState.input).to.equal(value);
-				expect(useStore.getState().machineState.currentTapeValue).to.equal(value);
-				expect(useStore.getState().machineState.currentHeadPos).to.equal(0);
-				expect(useStore.getState().machineState.options.initialPosition).to.equal(0);
+				const machine = useStore.getState().machine;
+				expect(machine.getInput()).to.equal(value);
+				expect(machine.getCurrentCondition().tapeValue).to.equal(value);
+				expect(machine.getCurrentCondition().headPosition).to.equal(0);
+				expect(machine.getOptions().initialPosition).to.equal(0);
 			});
 
 		cy
@@ -80,21 +80,16 @@ describe('<TapeInput />', () => {
 			.click();
 
 		cy
-			.get('@setMachineState')
+			.get('@setState')
 			.should('be.calledWith', {
-				input: '',
-				currentTapeValue: '',
-				currentHeadPos: 0,
-				options: {
-					...options,
-					initialPosition: 0,
-				}
+				machine: new TuringMachine(''),
 			})
 			.then(() => {
-				expect(useStore.getState().machineState.input).to.equal('');
-				expect(useStore.getState().machineState.currentTapeValue).to.equal('');
-				expect(useStore.getState().machineState.currentHeadPos).to.equal(0);
-				expect(useStore.getState().machineState.options.initialPosition).to.equal(0);
+				const machine = useStore.getState().machine;
+				expect(machine.getInput()).to.equal('');
+				expect(machine.getCurrentCondition().tapeValue).to.equal('');
+				expect(machine.getCurrentCondition().headPosition).to.equal(0);
+				expect(machine.getOptions().initialPosition).to.equal(0);
 			});
 	});
 

@@ -46,6 +46,10 @@ beforeEach(() => {
 		states: testStates,
 	}); // Reset the machine state
 
+	useStore.setState({
+		machine: new TuringMachine(),
+	}); // Reset the machine
+
 	mountWithTable();
 });
 
@@ -61,9 +65,9 @@ describe('<TableViewCell />', () => {
 
 	context('With instructions', () => {
 		beforeEach(() => {
-			useStore.getState().setMachineState({ // Add the test instruction
-				instructions: [testInstruction],
-			});
+			useStore.getState().setInstructions( // Add the test instruction
+				[testInstruction]
+			);
 
 			mountWithTable();
 		});
@@ -86,7 +90,7 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 		cy
 			.findByDisplayValue(value)
 			.then(() => {
-				expect(useStore.getState().machineState.instructions).to.deep.equal([testInstruction]);
+				expect(useStore.getState().machine.getInstructions()).to.deep.equal([testInstruction]);
 			});
 	});
 
@@ -96,7 +100,7 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 			.get('.form-control')
 			.type(`${testInstruction.newSymbol} ${testInstruction.move} ${testInstruction.newState}`)
 			.then(() => {
-				expect(useStore.getState().machineState.instructions).to.deep.equal([testInstruction]);
+				expect(useStore.getState().machine.getInstructions()).to.deep.equal([testInstruction]);
 			});
 
 		cy.log('**Update newState**');
@@ -105,7 +109,7 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 				.findByDisplayValue(`${testInstruction.newSymbol} ${testInstruction.move} ${testNewStates[i - 1] || testInstruction.newState}`)
 				.type(`{backspace}{backspace}${newState}`)
 				.then(() => {
-					expect(useStore.getState().machineState.instructions).to.deep.equal([{
+					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
 						...testInstruction,
 						newState,
 					}]);
@@ -122,7 +126,7 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 				.findByDisplayValue(`${testInstruction.newSymbol} ${testMoveDirections[i - 1] || testInstruction.move} ${lastState}`)
 				.type(`{backspace}${move}`)
 				.then(() => {
-					expect(useStore.getState().machineState.instructions).to.deep.equal([{
+					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
 						...testInstruction,
 						newState: lastState,
 						move,
@@ -140,7 +144,7 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 				.findByDisplayValue(`${testNewSymbols[i - 1] || testInstruction.newSymbol} ${lastMove} ${lastState}`)
 				.type(`{backspace}${newSymbol}`)
 				.then(() => {
-					expect(useStore.getState().machineState.instructions).to.deep.equal([{
+					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
 						...testInstruction,
 						newState: lastState,
 						move: lastMove,
@@ -156,7 +160,7 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 			.get('.form-control')
 			.type(`${testInstruction.newSymbol} ${testInstruction.move} ${testInstruction.newState}`)
 			.then(() => {
-				expect(useStore.getState().machineState.instructions).to.deep.equal([testInstruction]);
+				expect(useStore.getState().machine.getInstructions()).to.deep.equal([testInstruction]);
 			});
 
 		cy
@@ -167,7 +171,7 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 			.findByPlaceholderText(TuringMachine.NONE)
 			.should('be.empty')
 			.then(() => {
-				expect(useStore.getState().machineState.instructions).to.be.empty;
+				expect(useStore.getState().machine.getInstructions()).to.be.empty;
 			});
 	});
 });
@@ -217,7 +221,7 @@ describe('<TableViewCell /> with invalid value', () => {
 			.type(`${testInstruction.newSymbol} ${testInstruction.move} ${invalidNewState}`)
 			.should('have.class', 'is-invalid')
 			.then(() => {
-				expect(useStore.getState().machineState.instructions).to.have.length(0);
+				expect(useStore.getState().machine.getInstructions()).to.have.length(0);
 			});
 	});
 });
@@ -229,7 +233,7 @@ describe('<TableViewCell /> with shorted instructions', () => {
 				.get('.form-control')
 				.type(`${testInstruction.move}`)
 				.then(() => {
-					expect(useStore.getState().machineState.instructions).to.deep.equal([{
+					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
 						...testInstruction,
 						move: testInstruction.move,
 						newSymbol: testInstruction.symbol,
@@ -245,7 +249,7 @@ describe('<TableViewCell /> with shorted instructions', () => {
 				.get('.form-control')
 				.type(`${defaultOptions.finalState}`)
 				.then(() => {
-					expect(useStore.getState().machineState.instructions).to.deep.equal([{
+					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
 						...testInstruction,
 						move: TuringMachine.NONE,
 						newSymbol: testInstruction.symbol,

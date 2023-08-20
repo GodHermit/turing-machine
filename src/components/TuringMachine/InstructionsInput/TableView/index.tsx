@@ -9,7 +9,17 @@ import styles from '../InstructionInput.module.scss';
 import TableViewCell from './TableCell';
 
 export default function TableView() {
-	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
+	const [
+		machine,
+		machineState,
+		setMachineState,
+		setInstructions,
+	] = useStore(state => [
+		state.machine,
+		state.machineState,
+		state.setMachineState,
+		state.setInstructions,
+	]);
 	const debouncedMachineState = useDebounce(machineState, 500);
 	const alphabet = [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL];
 
@@ -38,7 +48,7 @@ export default function TableView() {
 		if (machineState.states.includes(newName)) return;
 
 		// Update the state name in the instructions
-		const newInstructions = machineState.instructions
+		const newInstructions = machine.getInstructions()
 			.map(instruction => {
 				if (instruction.state === name) instruction.state = newName;
 				if (instruction.newState === name) instruction.newState = newName;
@@ -47,8 +57,8 @@ export default function TableView() {
 
 		setMachineState({
 			states: machineState.states.map(state => state === name ? newName : state),
-			instructions: newInstructions,
 		});
+		setInstructions(newInstructions);
 	};
 
 	/**
@@ -57,9 +67,15 @@ export default function TableView() {
 	 */
 	const deleteState = (stateName: string) => {
 		setMachineState({
-			states: machineState.states.filter(state => state !== stateName),
-			instructions: machineState.instructions.filter(instruction => instruction.state !== stateName && instruction.newState !== stateName),
+			states: machineState.states.filter(state => state !== stateName)
 		});
+
+		const newInstructions = machine.getInstructions()
+			.filter(instruction =>
+				instruction.state !== stateName &&
+				instruction.newState !== stateName
+			);
+		setInstructions(newInstructions);
 	};
 
 	return (

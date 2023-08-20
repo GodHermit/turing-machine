@@ -39,15 +39,23 @@ interface TableViewCellProps {
 }
 
 export default function TableViewCell(props: TableViewCellProps) {
-	const [machineState, setMachineState] = useStore(state => [state.machineState, state.setMachineState]);
+	const [
+		machine,
+		machineState,
+		setInstructions,
+	] = useStore(state => [
+		state.machine,
+		state.machineState,
+		state.setInstructions,
+	]);
 	const debouncedMachineState = useDebounce(machineState, 500);
 
 	const instruction = useMemo<Instruction | undefined>(
-		() => machineState.instructions.find(instruction => (
+		() => machine.getInstructions().find(instruction => (
 			instruction.state === props.instructionState &&
 			instruction.symbol === props.instructionSymbol
 		)),
-		[machineState.instructions, props.instructionState, props.instructionSymbol]
+		[machine, props.instructionState, props.instructionSymbol]
 	);
 	const defaultValue = instruction
 		? `${instruction.newSymbol} ${instruction.move} ${instruction.newState}`
@@ -87,15 +95,13 @@ export default function TableViewCell(props: TableViewCellProps) {
 	 */
 	const addInstruction = (instruction: Instruction) => {
 		setIsInvalid(false);
-		setMachineState({
-			instructions: [
-				...machineState.instructions.filter(instruction => !(
-					instruction.state === props.instructionState &&
-					instruction.symbol === props.instructionSymbol
-				)),
-				instruction
-			]
-		});
+		setInstructions([
+			...machine.getInstructions().filter(instruction => !(
+				instruction.state === props.instructionState &&
+				instruction.symbol === props.instructionSymbol
+			)),
+			instruction
+		])
 	};
 
 	/**
@@ -103,12 +109,10 @@ export default function TableViewCell(props: TableViewCellProps) {
 	 */
 	const removeInstruction = () => {
 		setIsInvalid(false);
-		setMachineState({
-			instructions: machineState.instructions.filter(instruction => !(
-				instruction.state === props.instructionState &&
-				instruction.symbol === props.instructionSymbol
-			))
-		});
+		setInstructions(machine.getInstructions().filter(instruction => !(
+			instruction.state === props.instructionState &&
+			instruction.symbol === props.instructionSymbol
+		)))
 	};
 
 	/**
@@ -126,14 +130,14 @@ export default function TableViewCell(props: TableViewCellProps) {
 
 		// If the value is shortened instruction
 		switch (e.target.value) {
-			case machineState.options.finalState:
-				setValue(`${props.instructionSymbol} ${TuringMachine.NONE} ${machineState.options.finalState}`);
+			case machine.getOptions().finalState:
+				setValue(`${props.instructionSymbol} ${TuringMachine.NONE} ${machine.getOptions().finalState}`);
 				addInstruction({
 					state: props.instructionState,
 					symbol: props.instructionSymbol,
 					move: TuringMachine.NONE,
 					newSymbol: props.instructionSymbol,
-					newState: machineState.options.finalState
+					newState: machine.getOptions().finalState
 				});
 				return;
 

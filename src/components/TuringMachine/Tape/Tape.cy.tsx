@@ -1,6 +1,7 @@
 import { useStore } from '@/_store';
 import '@/app/globals.scss';
 import Tape from './index';
+import TuringMachine from '@/lib/turingMachine';
 
 /**
  * An array of viewport widths and the number of cells that should be visible at that width.
@@ -51,14 +52,7 @@ const testTapeValues = [{
 
 describe('<Tape />', () => {
 	beforeEach(() => {
-		const options = useStore.getState().machineState.options;
-		useStore.getState().setMachineState({
-			currentHeadPos: 0,
-			options: {
-				...options,
-				initialPosition: 0,
-			}
-		});
+		useStore.getState().setHeadPosition(0, true); // Reset head position
 
 		cy.mount(
 			<div className='container'>
@@ -90,7 +84,7 @@ describe('<Tape />', () => {
 			 */
 			const assertTapeValue = (headPos: number = 0) => {
 				cy.log('**Asserting tape value**');
-				expect(useStore.getState().machineState.currentHeadPos).to.be.equal(headPos);
+				expect(useStore.getState().machine.getCurrentCondition().headPosition).to.be.equal(headPos);
 				cy
 					.get('.input-group > *')
 					.each((cell, index, items) => {
@@ -109,8 +103,14 @@ describe('<Tape />', () => {
 			beforeEach(() => {
 				useStore.getState().setMachineState({
 					alphabet,
-					input: value,
-					currentTapeValue: value,
+				});
+
+				const newMachine = new TuringMachine(useStore.getState().machine);
+				newMachine.setInput(value);
+				newMachine.reset();
+
+				useStore.setState({
+					machine: newMachine,
 				});
 
 				cy.viewport(1400, 500);

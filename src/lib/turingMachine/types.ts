@@ -47,3 +47,42 @@ export type TuringMachineOptions = {
 	 */
 	maxSteps: number;
 };
+
+export type TuringMachineCondition = {
+	/**
+	 * The tape value of the current condition
+	 */
+	tapeValue: string;
+	/**
+	 * The current state of the machine
+	 */
+	state: string;
+	/**
+	 * The current head position relative to the tape value
+	 * @description The head position can be negative, but only blank symbols exist before 0
+	 */
+	headPosition: number;
+	/**
+	 * The current step of the machine
+	 * @description The step is incremented after each instruction
+	 */
+	step: number;
+};
+
+export interface TuringMachineExtendedCondition extends TuringMachineCondition {
+	/**
+	 * The current symbol under the head
+	 * @description Calculated from the current head position and the tape value
+	 */
+	readonly symbol: string;
+	/**
+	 * The current instruction of the machine
+	 * @description Calculated from the current state and the current symbol
+	 */
+	readonly instruction: Instruction | null;
+	/**
+	 * The variable to check if the machine is in a final condition
+	 * @description Calculated from the current state and the final state
+	 */
+	readonly isFinalCondition: boolean;
+}

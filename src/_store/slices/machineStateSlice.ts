@@ -1,5 +1,5 @@
-import { defaultOptions } from '@/lib/turingMachine';
-import { Instruction, TuringMachineOptions } from '@/lib/turingMachine/types';
+import TuringMachine from '@/lib/turingMachine';
+import { Instruction, TuringMachineExtendedCondition } from '@/lib/turingMachine/types';
 import { StateCreator } from 'zustand';
 
 export interface MachineState {
@@ -12,56 +12,37 @@ export interface MachineState {
 	 */
 	states: string[];
 	/**
-	 * The input tape value.
+	 * Array of conditions of the Turing machine.
 	 */
-	input: string;
-	/**
-	 * The instructions of the Turing machine.
-	 */
-	instructions: Instruction[];
-	/**
-	 * The current tape value.
-	 */
-	currentTapeValue: string;
-	/**
-	 * The current head position.
-	 * @description The offset is relative to the first symbol of the input
-	 * @default 0
-	 */
-	currentHeadPos: number;
-	/**
-	 * The current state of the Turing machine.
-	 */
-	currentState: string;
-	/**
-	 * The options of the Turing machine.
-	 */
-	options: TuringMachineOptions;
+	logs: Array<TuringMachineExtendedCondition | Error>;
 }
 
 interface MachineActions {
 	setMachineState: (settings: Partial<MachineState>) => void;
 	setMachineAlphabet: (alphabet: string[]) => void;
+	setInstructions: (instructions: Instruction[]) => void;
+	setHeadPosition: (position: number, isInitial?: boolean) => void;
+	executeMachine: (action: 'run' | 'step') => void;
+	resetMachine: () => void;
 }
 
 export const initialMachineState: MachineState = {
 	alphabet: [],
 	states: ['q0'],
-	input: '',
-	instructions: [],
-	currentTapeValue: '',
-	currentHeadPos: 0,
-	currentState: 'q0',
-	options: defaultOptions
+	logs: []
 };
 
-export type MachineStateSlice = { machineState: MachineState } & MachineActions;
+export type MachineStateSlice = {
+	machine: TuringMachine;
+	machineState: MachineState
+} & MachineActions;
 
 export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) => ({
+	machine: new TuringMachine(),
 	machineState: initialMachineState,
 	setMachineState: (state) => set(s => ({ machineState: { ...s.machineState, ...state } })),
 	setMachineAlphabet: (alphabet) => set(s => {
-		let instructions = s.machineState.instructions;
+		let instructions = s.machine.getInstructions();
 
 		// Remove instructions that are not in the new alphabet
 		instructions = instructions.filter(instruction => {
@@ -70,12 +51,81 @@ export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) =>
 			return alphabet.includes(symbol) && alphabet.includes(newSymbol);
 		});
 
+		const newMachine = new TuringMachine(s.machine);
+		newMachine.setInstructions(instructions);
+
 		return {
+			machine: newMachine,
 			machineState: {
 				...s.machineState,
 				alphabet: alphabet,
-				instructions: instructions
 			}
 		};
-	})
+	}),
+	setInstructions: (newInstructions: Instruction[]) => set(s => {
+		const newMachine = new TuringMachine(s.machine);
+		newMachine.setInstructions(newInstructions);
+
+		return {
+			machine: newMachine
+		};
+	}),
+	setHeadPosition: (position: number, isInitial: boolean = false) => set(s => {
+		const newMachine = new TuringMachine(s.machine);
+		newMachine.setCurrentCondition({ headPosition: position });
+
+		if (isInitial) {
+			newMachine.setOptions({ initialPosition: position });
+		}
+
+		return {
+			machine: newMachine
+		};
+	}),
+	executeMachine: (action: 'run' | 'step') => set(s => {
+		if (s.machine.getCurrentCondition().isFinalCondition) {
+			throw new Error('Machine has already finished');
+		}
+
+		const newMachine = new TuringMachine(s.machine);
+		const newLogs = s.machineState.logs;
+
+		try {
+			switch (action) {
+				case 'run':
+					let runResult = newMachine.run();
+					newLogs.push(...runResult.logs);
+					break;
+				case 'step':
+					newLogs.push(newMachine.getCurrentCondition());
+					newMachine.step();
+					break;
+				default:
+					throw new Error('Invalid action');
+			}
+		} catch (e) {
+			newLogs.pop();
+			newLogs.push(e as Error);
+		}
+
+		return {
+			machine: newMachine,
+			machineState: {
+				...s.machineState,
+				logs: newLogs
+			}
+		};
+	}),
+	resetMachine: () => set(s => {
+		const newMachine = new TuringMachine(s.machine);
+		newMachine.reset();
+
+		return {
+			machine: newMachine,
+			machineState: {
+				...s.machineState,
+				logs: []
+			}
+		};
+	}),
 });
