@@ -1,13 +1,20 @@
 'use client';
 
 import { useStore } from '@/_store';
-import TuringMachine from '@/lib/turingMachine';
-import { useEffect, useMemo, useRef, useState } from 'react';
-
-const objToStr = (obj: Object) => JSON.stringify(Object.values(obj));
+import { useMemo } from 'react';
 
 export default function MachineControls() {
-	const [machine] = useStore(state => [state.machine]);
+	const [
+		machine,
+		machineState,
+		executeMachine,
+		resetMachine,
+	] = useStore(state => [
+		state.machine,
+		state.machineState,
+		state.executeMachine,
+		state.resetMachine
+	]);
 	/**
 	 * Machine current condition
 	 */
@@ -15,22 +22,26 @@ export default function MachineControls() {
 	/**
 	 * Error state
 	 */
-	const [machineError, setMachineError] = useState({
-		isError: false,
-		message: '',
-	});
+	const machineError = useMemo(() => {
+		const lastLogEntry = machineState.logs[machineState.logs.length - 1];
+		return {
+			isError: lastLogEntry instanceof Error,
+			message: lastLogEntry instanceof Error ? lastLogEntry.message : '',
+		};
+	}, [machineState]);
 	/**
 	 * Whether action buttons should be disabled
 	 */
 	const isControlsDisabled = useMemo(() => {
-		return machine.getCurrentCondition().finalCondition;
+		return machine.getCurrentCondition().isFinalCondition;
 	}, [machine]);
 	/**
 	 * Whether reset button should be disabled
 	 */
 	const isResetDisabled = useMemo(() => {
-		return currentCondition.step === 0;
-	}, [currentCondition.step]);
+		return currentCondition.step === 0 &&
+			machineError.isError === false
+	}, [currentCondition.step, machineError]);
 
 	/**
 	 * Handle action button click
@@ -41,37 +52,18 @@ export default function MachineControls() {
 			return;
 		}
 
-		try {
-			if (machine.getCurrentCondition().finalCondition) {
-				throw new Error('Machine has already finished');
-			}
-			const newMachine = new TuringMachine(machine);
-			newMachine[action]();
-			useStore.setState({
-				machine: newMachine,
-			});
-		} catch (error: any) {
-			setMachineError({
-				isError: true,
-				message: error.message,
-			});
-		}
+		executeMachine(action);
 	};
 
 	/**
 	 * Handle reset button click
 	 */
 	const handleReset = () => {
-		const newMachine = new TuringMachine(machine);
-		newMachine.reset();
-		useStore.setState({
-			machine: newMachine,
-		});
+		if (isResetDisabled) {
+			return;
+		}
 
-		setMachineError({
-			isError: false,
-			message: '',
-		});
+		resetMachine();
 	};
 
 	return (
@@ -100,7 +92,7 @@ export default function MachineControls() {
 					Reset
 				</button>
 			</div>
-			{machine.getCurrentCondition().finalCondition && (
+			{machine.getCurrentCondition().isFinalCondition && (
 				<div className='alert alert-success mt-2 mb-0' role='alert'>
 					<b>Success!</b> Amount of iterations: {currentCondition.step}
 				</div>
