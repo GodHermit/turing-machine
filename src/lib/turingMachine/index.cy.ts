@@ -141,6 +141,15 @@ describe('class TuringMachine { }', () => {
 				});
 			});
 		});
+
+		context('when input is an instance of TuringMachine', () => {
+			it('should copy the input', () => {
+				const tm = new TuringMachine(testInput, testInstructions);
+				const newTm = new TuringMachine(tm);
+				expect(newTm.getInput()).to.eq(testInput);
+				expect(newTm.getInstructions()).to.deep.eq(testInstructions);
+			});
+		});
 	});
 
 	describe('setInput()', () => {
@@ -218,7 +227,7 @@ describe('class TuringMachine { }', () => {
 				step: 0,
 				symbol: testInput[testHeadPos],
 				instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === testInput[testHeadPos]),
-				finalCondition: defaultOptions.initialState === defaultOptions.finalState,
+				isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
 			});
 		});
 	});
@@ -233,7 +242,7 @@ describe('class TuringMachine { }', () => {
 				step: 0,
 				symbol: testInput[defaultOptions.initialPosition],
 				instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === testInput[defaultOptions.initialPosition]),
-				finalCondition: defaultOptions.initialState === defaultOptions.finalState,
+				isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
 			});
 		});
 
@@ -250,7 +259,7 @@ describe('class TuringMachine { }', () => {
 					step: 0,
 					symbol: TuringMachine.BLANK_SYMBOL,
 					instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === TuringMachine.BLANK_SYMBOL),
-					finalCondition: defaultOptions.initialState === defaultOptions.finalState,
+					isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
 				});
 			});
 		});
@@ -267,7 +276,7 @@ describe('class TuringMachine { }', () => {
 	describe('run()', () => {
 		it('should return the last tape value', () => {
 			const tm = new TuringMachine(testInput, testInstructions);
-			expect(tm.run()).to.eq('0101λ');
+			expect(tm.run().result).to.eq('0101λ');
 		});
 
 		context('when the final state is not reached', () => {
@@ -303,7 +312,7 @@ describe('class TuringMachine { }', () => {
 				step: 0,
 				symbol: testInput[defaultOptions.initialPosition],
 				instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === testInput[defaultOptions.initialPosition]),
-				finalCondition: defaultOptions.initialState === defaultOptions.finalState,
+				isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
 			});
 		});
 

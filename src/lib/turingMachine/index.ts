@@ -1,4 +1,4 @@
-import { Direction, Instruction, TuringMachineOptions } from './types';
+import { Direction, Instruction, TuringMachineCondition, TuringMachineExtendedCondition, TuringMachineOptions } from './types';
 
 export const defaultOptions: TuringMachineOptions = {
 	initialState: 'q0',
@@ -47,7 +47,7 @@ export default class TuringMachine {
 	/**
 	 * The current condition of the machine
 	 */
-	private current = {
+	private current: TuringMachineCondition = {
 		/**
 		 * The current tape value
 		 */
@@ -97,7 +97,7 @@ export default class TuringMachine {
 			this.current.state = currentCondition.state;
 			this.current.headPosition = currentCondition.headPosition;
 			this.current.step = currentCondition.step;
-			
+
 			return;
 		}
 
@@ -147,13 +147,13 @@ export default class TuringMachine {
 	}
 
 	/**
-	 * Gets the current condition of the machine
-	 * @returns The current condition of the machine
+	 * Gets the extended current condition of the machine
+	 * @returns The extended current condition of the machine
 	 */
-	public getCurrentCondition() {
+	public getCurrentCondition(): TuringMachineExtendedCondition {
 		const symbol = this.current.tapeValue[this.current.headPosition] || TuringMachine.BLANK_SYMBOL;
 
-		let instruction;
+		let instruction: Instruction | null = null;
 		try {
 			instruction = this.getInstruction(this.current.state, symbol);
 		} catch { }
@@ -162,7 +162,7 @@ export default class TuringMachine {
 			...this.current,
 			symbol,
 			instruction,
-			finalCondition: this.current.state === this.options.finalState
+			isFinalCondition: this.current.state === this.options.finalState
 		};
 	}
 
@@ -178,10 +178,13 @@ export default class TuringMachine {
 	 * Runs the machine
 	 * @returns The final tape value
 	 */
-	public run(): string {
-		this.current.step = 0;
+	public run() {
+		// this.current.step = 0;
 		let result = this.current.tapeValue;
+		let logs: Array<TuringMachineExtendedCondition | Error> = [];
+
 		for (var i = 0; i < this.options.maxSteps; i++) {
+			logs.push(this.getCurrentCondition());
 			result = this.step();
 			// Check if final state reached
 			if (this.current.state === this.options.finalState) {
@@ -192,7 +195,10 @@ export default class TuringMachine {
 				throw new Error(`Maximum number of steps reached (${this.options.maxSteps})`);
 			}
 		}
-		return result;
+		return {
+			result,
+			logs
+		};
 	}
 
 	/**
