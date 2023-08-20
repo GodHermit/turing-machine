@@ -1,5 +1,5 @@
 import TuringMachine from '@/lib/turingMachine';
-import { Instruction } from '@/lib/turingMachine/types';
+import { Instruction, TuringMachineExtendedCondition } from '@/lib/turingMachine/types';
 import { StateCreator } from 'zustand';
 
 export interface MachineState {
@@ -11,6 +11,10 @@ export interface MachineState {
 	 * Array of states of the Turing machine.
 	 */
 	states: string[];
+	/**
+	 * Array of conditions of the Turing machine.
+	 */
+	logs: Array<TuringMachineExtendedCondition | Error>;
 }
 
 interface MachineActions {
@@ -18,11 +22,14 @@ interface MachineActions {
 	setMachineAlphabet: (alphabet: string[]) => void;
 	setInstructions: (instructions: Instruction[]) => void;
 	setHeadPosition: (position: number, isInitial?: boolean) => void;
+	executeMachine: (action: 'run' | 'step') => void;
+	resetMachine: () => void;
 }
 
 export const initialMachineState: MachineState = {
 	alphabet: [],
 	states: ['q0'],
+	logs: []
 };
 
 export type MachineStateSlice = {
@@ -74,5 +81,51 @@ export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) =>
 		return {
 			machine: newMachine
 		};
-	})
+	}),
+	executeMachine: (action: 'run' | 'step') => set(s => {
+		if (s.machine.getCurrentCondition().isFinalCondition) {
+			throw new Error('Machine has already finished');
+		}
+
+		const newMachine = new TuringMachine(s.machine);
+		const newLogs = s.machineState.logs;
+
+		try {
+			switch (action) {
+				case 'run':
+					let runResult = newMachine.run();
+					newLogs.push(...runResult.logs);
+					break;
+				case 'step':
+					newLogs.push(newMachine.getCurrentCondition());
+					newMachine.step();
+					break;
+				default:
+					throw new Error('Invalid action');
+			}
+		} catch (e) {
+			newLogs.pop();
+			newLogs.push(e as Error);
+		}
+
+		return {
+			machine: newMachine,
+			machineState: {
+				...s.machineState,
+				logs: newLogs
+			}
+		};
+	}),
+	resetMachine: () => set(s => {
+		const newMachine = new TuringMachine(s.machine);
+		newMachine.reset();
+
+		return {
+			machine: newMachine,
+			machineState: {
+				...s.machineState,
+				logs: []
+			}
+		};
+	}),
 });
