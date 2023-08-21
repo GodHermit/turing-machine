@@ -66,6 +66,19 @@ export default function TableViewCell(props: TableViewCellProps) {
 	const [isInvalid, setIsInvalid] = useState<boolean>(false);
 	const debouncedIsInvalid = useDebounce(isInvalid, 1000);
 
+	/**
+	 * Check if the instruction in the cell is active
+	 */
+	const isActive = useMemo<boolean>(() => {
+		const currentCondition = machine.getCurrentCondition();
+
+		return (
+			// currentCondition.step > 0 &&
+			currentCondition.state === props.instructionState &&
+			currentCondition.symbol === props.instructionSymbol
+		);
+	}, [machine, props.instructionState, props.instructionSymbol]);
+
 	const alphabet = useMemo(
 		() => [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL],
 		[debouncedMachineState.alphabet]
@@ -85,7 +98,6 @@ export default function TableViewCell(props: TableViewCellProps) {
 		// If value is same as default value
 		if (value === defaultValue) return;
 
-		console.log('sync');
 		setValue(defaultValue);
 	}, [defaultValue, value, isInvalid]);
 
@@ -179,7 +191,8 @@ export default function TableViewCell(props: TableViewCellProps) {
 				type='text'
 				className={clsx(
 					'form-control text-center rounded-0 border-0',
-					debouncedIsInvalid && 'is-invalid'
+					debouncedIsInvalid && 'is-invalid',
+					isActive && 'bg-body-secondary',
 				)}
 				placeholder='N'
 				value={value}

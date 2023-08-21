@@ -24,6 +24,22 @@ interface MachineActions {
 	setHeadPosition: (position: number, isInitial?: boolean) => void;
 	executeMachine: (action: 'run' | 'step') => void;
 	resetMachine: () => void;
+
+	/**
+	 * Add a new state to the machine
+	 */
+	addState: () => void;
+	/**
+	 * Rename a state
+	 * @param name Current name of the state
+	 * @param newName New name of the state
+	 */
+	renameState: (name: string, newName: string) => void;
+	/**
+	 * Delete a state
+	 * @param stateName Name of the state to delete 
+	 */
+	deleteState: (name: string) => void;
 }
 
 export const initialMachineState: MachineState = {
@@ -125,6 +141,104 @@ export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) =>
 			machineState: {
 				...s.machineState,
 				logs: []
+			}
+		};
+	}),
+	addState: () => set(s => {
+		let newState = `q${s.machineState.states.length}`; // New state name
+
+		// If the new state name is already in use, leave it empty
+		if (s.machineState.states.includes(newState)) {
+			newState = '';
+		}
+
+		const newMachine = new TuringMachine(s.machine);
+		const options = newMachine.getOptions();
+		if (!options.initialState) {
+			newMachine.setOptions({ initialState: newState });
+		}
+
+		const currentCondition = newMachine.getCurrentCondition();
+		if (!currentCondition.state) {
+			newMachine.setCurrentCondition({ state: newState });
+		}
+
+		return {
+			machine: newMachine,
+			machineState: {
+				...s.machineState,
+				states: [...s.machineState.states, newState]
+			}
+		};
+	}),
+	renameState: (name: string, newName: string) => set(s => {
+		// If the new name is already in use, don't change anything
+		if ([...s.machineState.states, s.machine.getOptions().finalState].includes(newName)) return {};
+
+		const newMachine = new TuringMachine(s.machine);
+
+		// Update the state name in the instructions
+		const newInstructions = newMachine.getInstructions()
+			.map(instruction => {
+				if (instruction.state === name) instruction.state = newName;
+				if (instruction.newState === name) instruction.newState = newName;
+				return instruction;
+			});
+		newMachine.setInstructions(newInstructions);
+
+		// Update state name in the options
+		const options = newMachine.getOptions();
+		newMachine.setOptions({
+			initialState: options.initialState === name ? newName : options.initialState,
+			finalState: options.finalState === name ? newName : options.finalState,
+		});
+
+		// Update state name in the current condition
+		const currentCondition = newMachine.getCurrentCondition();
+		newMachine.setCurrentCondition({
+			state: currentCondition.state === name ? newName : currentCondition.state,
+		});
+
+		return {
+			machine: newMachine,
+			machineState: {
+				...s.machineState,
+				states: s.machineState.states.map(state => state === name ? newName : state)
+			}
+		}
+	}),
+	deleteState: (name: string) => set(s => {
+		const newStates = s.machineState.states.filter(state => state !== name);
+		const newMachine = new TuringMachine(s.machine);
+
+		// Delete instructions that use the state
+		const newInstructions = newMachine.getInstructions()
+			.filter(instruction =>
+				instruction.state !== name &&
+				instruction.newState !== name
+			);
+		newMachine.setInstructions(newInstructions);
+
+		const fallbackState = newStates[0];
+
+		// Update state name in the options
+		const options = newMachine.getOptions();
+		newMachine.setOptions({
+			initialState: options.initialState === name ? fallbackState : options.initialState,
+			finalState: options.finalState === name ? fallbackState : options.finalState,
+		});
+
+		// Update state name in the current condition
+		const currentCondition = newMachine.getCurrentCondition();
+		newMachine.setCurrentCondition({
+			state: currentCondition.state === name ? fallbackState : currentCondition.state,
+		});
+
+		return {
+			machine: newMachine,
+			machineState: {
+				...s.machineState,
+				states: newStates
 			}
 		};
 	}),
