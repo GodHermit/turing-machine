@@ -10,73 +10,18 @@ import TableViewCell from './TableCell';
 
 export default function TableView() {
 	const [
-		machine,
 		machineState,
-		setMachineState,
-		setInstructions,
+		addState,
+		renameState,
+		deleteState,
 	] = useStore(state => [
-		state.machine,
 		state.machineState,
-		state.setMachineState,
-		state.setInstructions,
+		state.addState,
+		state.renameState,
+		state.deleteState,
 	]);
 	const debouncedMachineState = useDebounce(machineState, 500);
 	const alphabet = [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL];
-
-	/**
-	 * Add a new state to the machine
-	 */
-	const addState = () => {
-		let newState = `q${machineState.states.length}`; // New state name
-
-		// If the new state name is already in use, leave it empty
-		if (machineState.states.includes(newState)) {
-			newState = '';
-		}
-		setMachineState({
-			states: [...machineState.states, newState],
-		});
-	};
-
-	/**
-	 * Rename a state
-	 * @param name Current name of the state
-	 * @param newName New name of the state
-	 */
-	const renameState = (name: string, newName: string) => {
-		// If the new name is already in use, don't change anything
-		if (machineState.states.includes(newName)) return;
-
-		// Update the state name in the instructions
-		const newInstructions = machine.getInstructions()
-			.map(instruction => {
-				if (instruction.state === name) instruction.state = newName;
-				if (instruction.newState === name) instruction.newState = newName;
-				return instruction;
-			});
-
-		setMachineState({
-			states: machineState.states.map(state => state === name ? newName : state),
-		});
-		setInstructions(newInstructions);
-	};
-
-	/**
-	 * Delete a state
-	 * @param stateName Name of the state to delete 
-	 */
-	const deleteState = (stateName: string) => {
-		setMachineState({
-			states: machineState.states.filter(state => state !== stateName)
-		});
-
-		const newInstructions = machine.getInstructions()
-			.filter(instruction =>
-				instruction.state !== stateName &&
-				instruction.newState !== stateName
-			);
-		setInstructions(newInstructions);
-	};
 
 	return (
 		<>
