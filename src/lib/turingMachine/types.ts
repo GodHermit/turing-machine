@@ -1,10 +1,12 @@
 export type Direction = 'L' | 'R' | 'N';
+export type StateMapKey = string | number;
+export type StateMap = Map<StateMapKey, string>;
 
 export type Instruction = {
 	/**
-	 * The state of the machine to execute the instruction
+	 * The Turing machine state index
 	 */
-	state: string;
+	stateIndex: StateMapKey;
 	/**
 	 * The symbol to read in the cell to execute the instruction
 	 */
@@ -18,23 +20,34 @@ export type Instruction = {
 	 */
 	newSymbol: string;
 	/**
-	 * The new state of the machine after the instruction is executed
+	 * The new Turing machine state index after the instruction is executed
 	 */
-	newState: string;
+	newStateIndex: StateMapKey;
 };
+
+export interface ExtendedInstruction extends Instruction {
+	/**
+	 * The state name based on the `stateIndex`
+	 */
+	readonly stateName: string;
+	/**
+	 * The new state name based on the `newStateIndex`
+	 */
+	readonly newStateName: string;
+}
 
 export type TuringMachineOptions = {
 	/**
-	 * The state to use as halt
+	 * The Turing machine state index to use as halt
 	 * @default '!'
 	 * @description If the machine reaches this state, it will stop
 	 */
-	finalState: string;
+	finalStateIndex: StateMapKey;
 	/**
-	 * The initial state of the machine
-	 * @default 'q0'
+	 * The Turing machine initial state index
+	 * @default 0
 	 */
-	initialState: string;
+	initialStateIndex: StateMapKey;
 	/**
 	 * The initial position of the head
 	 * @description The offset is relative to the first symbol of the input
@@ -54,9 +67,9 @@ export type TuringMachineCondition = {
 	 */
 	tapeValue: string;
 	/**
-	 * The current state of the machine
+	 * The Turing machine current state index
 	 */
-	state: string;
+	stateIndex: StateMapKey;
 	/**
 	 * The current head position relative to the tape value
 	 * @description The head position can be negative, but only blank symbols exist before 0
@@ -76,10 +89,14 @@ export interface TuringMachineExtendedCondition extends TuringMachineCondition {
 	 */
 	readonly symbol: string;
 	/**
+	 * The current state name based on the `stateIndex`
+	 */
+	readonly stateName: string;
+	/**
 	 * The current instruction of the machine
 	 * @description Calculated from the current state and the current symbol
 	 */
-	readonly instruction: Instruction | null;
+	readonly instruction: ExtendedInstruction | null;
 	/**
 	 * The variable to check if the machine is in a final condition
 	 * @description Calculated from the current state and the final state

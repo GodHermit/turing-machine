@@ -1,6 +1,6 @@
 import { useStore } from '@/_store';
 import TuringMachine from '@/lib/turingMachine';
-import { Direction, Instruction } from '@/lib/turingMachine/types';
+import { Direction, Instruction, StateMap } from '@/lib/turingMachine/types';
 import clsx from 'clsx';
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { useDebounce } from 'usehooks-ts';
@@ -12,7 +12,7 @@ import { useDebounce } from 'usehooks-ts';
  * @param states states including the final state
  * @returns true if the instruction is valid, false otherwise
  */
-function isInstructionValid(instruction: Instruction, alphabet: string[], states: string[]): boolean {
+function isInstructionValid(instruction: Instruction, alphabet: string[], states: StateMap): boolean {
 	// If move doesn't exist
 	if (
 		![TuringMachine.LEFT, TuringMachine.RIGHT, TuringMachine.NONE].includes(instruction.move)
@@ -26,7 +26,7 @@ function isInstructionValid(instruction: Instruction, alphabet: string[], states
 	}
 
 	// If newState is invalid
-	if (!states.includes(instruction.newState)) {
+	if (!states.has(instruction.newStateIndex)) {
 		return false;
 	}
 
@@ -34,7 +34,7 @@ function isInstructionValid(instruction: Instruction, alphabet: string[], states
 }
 
 interface TableViewCellProps {
-	instructionState: string;
+	instructionStateIndex: Instruction['stateIndex'];
 	instructionSymbol: string;
 }
 
@@ -52,13 +52,13 @@ export default function TableViewCell(props: TableViewCellProps) {
 
 	const instruction = useMemo<Instruction | undefined>(
 		() => machine.getInstructions().find(instruction => (
-			instruction.state === props.instructionState &&
+			instruction.stateIndex === props.instructionStateIndex &&
 			instruction.symbol === props.instructionSymbol
 		)),
-		[machine, props.instructionState, props.instructionSymbol]
+		[machine, props.instructionStateIndex, props.instructionSymbol]
 	);
 	const defaultValue = instruction
-		? `${instruction.newSymbol} ${instruction.move} ${instruction.newState}`
+		? `${instruction.newSymbol} ${instruction.move} ${machineState.states.get(instruction.newStateIndex)}`
 		: '';
 
 	const [value, setValue] = useState<string>(defaultValue);
@@ -74,17 +74,17 @@ export default function TableViewCell(props: TableViewCellProps) {
 
 		return (
 			// currentCondition.step > 0 &&
-			currentCondition.state === props.instructionState &&
+			currentCondition.stateIndex === props.instructionStateIndex &&
 			currentCondition.symbol === props.instructionSymbol
 		);
-	}, [machine, props.instructionState, props.instructionSymbol]);
+	}, [machine, props.instructionStateIndex, props.instructionSymbol]);
 
 	const alphabet = useMemo(
 		() => [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL],
 		[debouncedMachineState.alphabet]
 	);
 	const states = useMemo(
-		() => [...debouncedMachineState.states, '!'],
+		() => debouncedMachineState.states,
 		[debouncedMachineState.states]
 	);
 
@@ -109,11 +109,11 @@ export default function TableViewCell(props: TableViewCellProps) {
 		setIsInvalid(false);
 		setInstructions([
 			...machine.getInstructions().filter(instruction => !(
-				instruction.state === props.instructionState &&
+				instruction.stateIndex === props.instructionStateIndex &&
 				instruction.symbol === props.instructionSymbol
 			)),
 			instruction
-		])
+		]);
 	};
 
 	/**
@@ -122,9 +122,9 @@ export default function TableViewCell(props: TableViewCellProps) {
 	const removeInstruction = () => {
 		setIsInvalid(false);
 		setInstructions(machine.getInstructions().filter(instruction => !(
-			instruction.state === props.instructionState &&
+			instruction.stateIndex === props.instructionStateIndex &&
 			instruction.symbol === props.instructionSymbol
-		)))
+		)));
 	};
 
 	/**
@@ -142,39 +142,45 @@ export default function TableViewCell(props: TableViewCellProps) {
 
 		// If the value is shortened instruction
 		switch (e.target.value) {
-			case machine.getOptions().finalState:
-				setValue(`${props.instructionSymbol} ${TuringMachine.NONE} ${machine.getOptions().finalState}`);
+			case machine.getOptions().finalStateIndex:
+				setValue(`${props.instructionSymbol} ${TuringMachine.NONE} ${machineState.states.get(machine.getOptions().finalStateIndex)}`);
 				addInstruction({
-					state: props.instructionState,
+					stateIndex: props.instructionStateIndex,
 					symbol: props.instructionSymbol,
 					move: TuringMachine.NONE,
 					newSymbol: props.instructionSymbol,
-					newState: machine.getOptions().finalState
+					newStateIndex: machine.getOptions().finalStateIndex
 				});
 				return;
 
 			case TuringMachine.LEFT:
 			case TuringMachine.RIGHT:
 			case TuringMachine.NONE:
-				setValue(`${props.instructionSymbol} ${e.target.value} ${props.instructionState}`);
+				setValue(`${props.instructionSymbol} ${e.target.value} ${machineState.states.get(props.instructionStateIndex)}`);
 				addInstruction({
-					state: props.instructionState,
+					stateIndex: props.instructionStateIndex,
 					symbol: props.instructionSymbol,
 					move: e.target.value as Direction,
 					newSymbol: props.instructionSymbol,
-					newState: props.instructionState
+					newStateIndex: props.instructionStateIndex
 				});
 				return;
 		}
 
 		let [newSymbol, move, newState] = e.target.value.split(' ');
 
-		let instruction = {
-			state: props.instructionState,
+		let newStateIndex = [...machineState.states].find(state => state[1] === newState);
+		if (!newStateIndex) {
+			setIsInvalid(true);
+			return;
+		}
+
+		let instruction: Instruction = {
+			stateIndex: props.instructionStateIndex,
 			symbol: props.instructionSymbol,
 			move: move as Direction,
 			newSymbol: newSymbol,
-			newState: newState
+			newStateIndex: newStateIndex[0]
 		};
 
 		if (!isInstructionValid(instruction, alphabet, states)) {

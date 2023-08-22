@@ -1,40 +1,45 @@
+import { useStore } from '@/_store';
 import TuringMachine, { defaultOptions } from '.';
-import { Direction } from './types';
+import { Direction, Instruction } from './types';
 
 const testInput = '1010';
 
-const testInstructions = [
+const testInstructions: Instruction[] = [
 	{
-		state: 'q0',
+		stateIndex: 0,
 		symbol: '0',
 		move: TuringMachine.RIGHT,
 		newSymbol: '1',
-		newState: 'q0'
+		newStateIndex: 0
 	},
 	{
-		state: 'q0',
+		stateIndex: 0,
 		symbol: '1',
 		move: TuringMachine.RIGHT,
 		newSymbol: '0',
-		newState: 'q0'
+		newStateIndex: 0
 	},
 	{
-		state: 'q0',
+		stateIndex: 0,
 		symbol: TuringMachine.BLANK_SYMBOL,
 		move: TuringMachine.RIGHT,
 		newSymbol: TuringMachine.BLANK_SYMBOL,
-		newState: '!'
+		newStateIndex: '!'
 	}
 ];
 
 const testOptions = {
-	initialState: 'q0',
+	initialStateIndex: 0,
 	initialPosition: 1,
-	finalState: '!',
+	finalStateIndex: '!',
 	maxSteps: 1001
 };
 
 describe('class TuringMachine { }', () => {
+
+	beforeEach(() => {
+		cy.wrap(useStore);
+	});
 
 	describe('static constants and variables', () => {
 		it('should have a static constant LEFT (L)', () => {
@@ -97,22 +102,22 @@ describe('class TuringMachine { }', () => {
 				cy
 					.get('@tm')
 					.invoke('getCurrentCondition')
-					.then(({ state }) => {
-						expect(state).to.eq(testOptions.initialState);
+					.then(({ stateIndex }) => {
+						expect(stateIndex).to.eq(testOptions.initialStateIndex);
 					});
 			});
 
 			context('initialState is not provided', () => {
 				it('should set the current state to the default one', () => {
-					const tm = new TuringMachine(testInput, testInstructions, { ...testOptions, initialState: undefined });
+					const tm = new TuringMachine(testInput, testInstructions, { ...testOptions, initialStateIndex: undefined });
 
 					cy.wrap(tm).as('tm');
 
 					cy
 						.get('@tm')
 						.invoke('getCurrentCondition')
-						.then(({ state }) => {
-							expect(state).to.eq(defaultOptions.initialState);
+						.then(({ stateIndex }) => {
+							expect(stateIndex).to.eq(defaultOptions.initialStateIndex);
 						});
 				});
 			});
@@ -171,18 +176,18 @@ describe('class TuringMachine { }', () => {
 		it('should set the instructions', () => {
 			const newInstructions = [
 				{
-					state: 'q0',
+					stateIndex: 'q0',
 					symbol: '0',
 					move: TuringMachine.RIGHT,
 					newSymbol: '0',
-					newState: 'q0'
+					newStateIndex: 'q0'
 				},
 				{
-					state: 'q0',
+					stateIndex: 'q0',
 					symbol: '1',
 					move: TuringMachine.NONE,
 					newSymbol: '1',
-					newState: '!'
+					newStateIndex: '!'
 				},
 			];
 			const tm = new TuringMachine(testInput, testInstructions);
@@ -220,14 +225,29 @@ describe('class TuringMachine { }', () => {
 			tm.setCurrentCondition({
 				headPosition: testHeadPos
 			});
+
+			const testInstruction = testInstructions.find(
+				({ stateIndex, symbol }) =>
+					stateIndex === defaultOptions.initialStateIndex &&
+					symbol === testInput[testHeadPos]
+			);
+			if (!testInstruction) {
+				throw new Error(`No instruction found for state index '${defaultOptions.initialStateIndex}' and symbol '${testInput[testHeadPos]}'`);
+			}
+
 			expect(tm.getCurrentCondition()).to.deep.eq({
-				state: defaultOptions.initialState,
+				stateIndex: defaultOptions.initialStateIndex,
+				stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
 				headPosition: testHeadPos,
 				tapeValue: testInput,
 				step: 0,
 				symbol: testInput[testHeadPos],
-				instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === testInput[testHeadPos]),
-				isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
+				instruction: {
+					...testInstruction,
+					stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
+					newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+				},
+				isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 			});
 		});
 	});
@@ -235,14 +255,29 @@ describe('class TuringMachine { }', () => {
 	describe('getCurrentCondition()', () => {
 		it('should return the current condition', () => {
 			const tm = new TuringMachine(testInput, testInstructions);
+
+			const testInstruction = testInstructions.find(
+				({ stateIndex, symbol }) =>
+					stateIndex === defaultOptions.initialStateIndex &&
+					symbol === testInput[defaultOptions.initialPosition]
+			);
+			if (!testInstruction) {
+				throw new Error(`No instruction found for state index '${defaultOptions.initialStateIndex}' and symbol '${testInput[defaultOptions.initialPosition]}'`);
+			}
+
 			expect(tm.getCurrentCondition()).to.deep.eq({
-				state: defaultOptions.initialState,
+				stateIndex: defaultOptions.initialStateIndex,
+				stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
 				headPosition: defaultOptions.initialPosition,
 				tapeValue: testInput,
 				step: 0,
 				symbol: testInput[defaultOptions.initialPosition],
-				instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === testInput[defaultOptions.initialPosition]),
-				isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
+				instruction: {
+					...testInstruction,
+					stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
+					newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+				},
+				isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 			});
 		});
 
@@ -252,14 +287,29 @@ describe('class TuringMachine { }', () => {
 				const tm = new TuringMachine(testInput, testInstructions, {
 					initialPosition: testHeadPos
 				});
+
+				const testInstruction = testInstructions.find(
+					({ stateIndex, symbol }) =>
+						stateIndex === defaultOptions.initialStateIndex &&
+						symbol === TuringMachine.BLANK_SYMBOL
+				);
+				if (!testInstruction) {
+					throw new Error(`No instruction found for state index '${defaultOptions.initialStateIndex}' and symbol '${TuringMachine.BLANK_SYMBOL}'`);
+				}
+
 				expect(tm.getCurrentCondition()).to.deep.eq({
-					state: defaultOptions.initialState,
+					stateIndex: defaultOptions.initialStateIndex,
+					stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
 					headPosition: testHeadPos,
 					tapeValue: testInput,
 					step: 0,
 					symbol: TuringMachine.BLANK_SYMBOL,
-					instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === TuringMachine.BLANK_SYMBOL),
-					isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
+					instruction: {
+						...testInstruction,
+						stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
+						newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+					},
+					isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 				});
 			});
 		});
@@ -283,11 +333,11 @@ describe('class TuringMachine { }', () => {
 			it('should throw an error', () => {
 				const testInstructions = [
 					{
-						state: 'q0',
+						stateIndex: 0,
 						symbol: TuringMachine.BLANK_SYMBOL,
 						move: TuringMachine.RIGHT,
 						newSymbol: TuringMachine.BLANK_SYMBOL,
-						newState: 'q0'
+						newStateIndex: 0
 					}
 				];
 				const tm = new TuringMachine('', testInstructions);
@@ -305,14 +355,28 @@ describe('class TuringMachine { }', () => {
 		it('should reset the current condition', () => {
 			const tm = new TuringMachine(testInput, testInstructions);
 			tm.reset();
+
+			const testInstruction = testInstructions.find(
+				({ stateIndex, symbol }) =>
+					stateIndex === defaultOptions.initialStateIndex &&
+					symbol === testInput[defaultOptions.initialPosition]
+			);
+			if (!testInstruction) {
+				throw new Error(`No instruction found for state index '${defaultOptions.initialStateIndex}' and symbol '${testInput[defaultOptions.initialPosition]}'`);
+			}
 			expect(tm.getCurrentCondition()).to.deep.eq({
-				state: defaultOptions.initialState,
+				stateIndex: defaultOptions.initialStateIndex,
+				stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
 				headPosition: defaultOptions.initialPosition,
 				tapeValue: testInput,
 				step: 0,
 				symbol: testInput[defaultOptions.initialPosition],
-				instruction: testInstructions.find(({ state, symbol }) => state === defaultOptions.initialState && symbol === testInput[defaultOptions.initialPosition]),
-				isFinalCondition: defaultOptions.initialState === defaultOptions.finalState,
+				instruction: {
+					...testInstruction,
+					stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
+					newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+				},
+				isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 			});
 		});
 
@@ -358,19 +422,34 @@ describe('class TuringMachine { }', () => {
 		context('when the initial state is the final state', () => {
 			it('should return the initial tape value', () => {
 				const tm = new TuringMachine(testInput, testInstructions, {
-					initialState: defaultOptions.finalState
+					initialStateIndex: defaultOptions.finalStateIndex
 				});
 				expect(tm.step()).to.eq(testInput);
 			});
 		});
 
-		context('when the instruction are undefined', () => {
+		context('when state is not found', () => {
+			it('should throw an error', () => {
+				const tm = new TuringMachine(testInput, testInstructions, {
+					initialStateIndex: 2
+				});
+
+				try {
+					tm.step();
+				} catch (error) {
+					expect((error as Error).message).to.eq(`No state found for index '${2}'`);
+				}
+			});
+		});
+
+		context('when the instructions are undefined', () => {
 			it('should throw an error', () => {
 				const tm = new TuringMachine(testInput, []);
 				try {
 					tm.step();
 				} catch (error) {
-					expect((error as Error).message).to.eq(`No instruction found for state 'q0' and symbol '${testInput[defaultOptions.initialPosition]}'`);
+					const state = useStore.getState().machineState.states.get(defaultOptions.initialStateIndex);
+					expect((error as Error).message).to.eq(`No instruction found for state '${state}' and symbol '${testInput[defaultOptions.initialPosition]}'`);
 				}
 			});
 		});
@@ -381,18 +460,18 @@ describe('class TuringMachine { }', () => {
 			it('should prepend BLANK_SYMBOL to the tape and set head position to 0', () => {
 				const testInstructions = [
 					{
-						state: 'q0',
+						stateIndex: 0,
 						symbol: '1',
 						move: TuringMachine.LEFT,
 						newSymbol: '0',
-						newState: defaultOptions.finalState
+						newStateIndex: defaultOptions.finalStateIndex
 					},
 					{
-						state: 'q0',
+						stateIndex: 0,
 						symbol: TuringMachine.BLANK_SYMBOL,
 						move: TuringMachine.LEFT,
 						newSymbol: TuringMachine.BLANK_SYMBOL,
-						newState: defaultOptions.finalState
+						newStateIndex: defaultOptions.finalStateIndex
 					}
 				];
 				const tm = new TuringMachine('111', testInstructions, {
@@ -410,11 +489,11 @@ describe('class TuringMachine { }', () => {
 			it('should return the new head position less than the current head position', () => {
 				const testInstructions = [
 					{
-						state: 'q0',
+						stateIndex: 0,
 						symbol: '1',
 						move: TuringMachine.LEFT,
 						newSymbol: '0',
-						newState: defaultOptions.finalState
+						newStateIndex: defaultOptions.finalStateIndex
 					}
 				];
 				const tm = new TuringMachine('111', testInstructions, {
@@ -430,11 +509,11 @@ describe('class TuringMachine { }', () => {
 			it('should return the new head position greater than the current head position', () => {
 				const testInstructions = [
 					{
-						state: 'q0',
+						stateIndex: 0,
 						symbol: '1',
 						move: TuringMachine.RIGHT,
 						newSymbol: '0',
-						newState: defaultOptions.finalState
+						newStateIndex: defaultOptions.finalStateIndex
 					}
 				];
 				const tm = new TuringMachine('111', testInstructions, {
@@ -450,11 +529,11 @@ describe('class TuringMachine { }', () => {
 			it('should return the new head position equal to the current head position', () => {
 				const testInstructions = [
 					{
-						state: 'q0',
+						stateIndex: 0,
 						symbol: '1',
 						move: TuringMachine.NONE,
 						newSymbol: '0',
-						newState: defaultOptions.finalState
+						newStateIndex: defaultOptions.finalStateIndex
 					}
 				];
 				const tm = new TuringMachine('111', testInstructions, {
@@ -470,11 +549,11 @@ describe('class TuringMachine { }', () => {
 			it('should throw an error', () => {
 				const testInstructions = [
 					{
-						state: 'q0',
+						stateIndex: 0,
 						symbol: '1',
 						move: 'I' as Direction,
 						newSymbol: '0',
-						newState: defaultOptions.finalState
+						newStateIndex: defaultOptions.finalStateIndex
 					}
 				];
 				const tm = new TuringMachine('111', testInstructions, {

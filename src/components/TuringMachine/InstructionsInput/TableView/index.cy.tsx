@@ -32,46 +32,55 @@ describe('<TableView />', () => {
 		});
 
 		it('Table should contain all states from the store', () => {
-			cy.get('tbody tr').should('have.length', useStore.getState().machineState.states.length);
+			cy.get('tbody tr').should('have.length', useStore.getState().machineState.states.size - 1); // -1 for final state
 			cy.get('tbody tr th input').each((th, i) => {
-				expect(th).to.have.value(useStore.getState().machineState.states[i]);
+				expect(th).to.have.value([...useStore.getState().machineState.states.values()][i + 1]); // +1 for final state
 			});
 		});
 
 		it('Table should updates when the states in the store changes', () => {
 			useStore.getState().setMachineState({
 				...useStore.getState().machineState,
-				states: ['q0', 'q1', 'q2'],
+				states: new Map().set(0, 'q0').set(1, 'q1').set(2, 'q2'),
 			});
-			cy.get('tbody tr').should('have.length', useStore.getState().machineState.states.length);
+			cy.get('tbody tr').should('have.length', useStore.getState().machineState.states.size);
 			cy.get('tbody tr th input').each((th, i) => {
-				expect(th).to.have.value(useStore.getState().machineState.states[i]);
+				expect(th).to.have.value([...useStore.getState().machineState.states.values()][i]);
 			});
 		});
 
 		it('Table should have the correct number of cells', () => {
+			useStore.getState().setMachineState({
+				...useStore.getState().machineState,
+				states: new Map().set(0, 'q0').set(1, 'q1').set(2, 'q2'),
+			});
+
 			const alphabet = [...useStore.getState().machineState.alphabet, TuringMachine.BLANK_SYMBOL];
 			const states = useStore.getState().machineState.states;
 			cy
 				.get('tbody tr td')
-				.should('have.length', alphabet.length * states.length);
+				.should('have.length', alphabet.length * states.size);
 		});
 
 		it('Table should display all instructions from the state', () => {
+			useStore.getState().setMachineState({
+				...useStore.getState().machineState,
+				states: new Map().set(0, 'q0').set(1, 'q1').set(2, 'q2'),
+			});
 			useStore.getState().setInstructions([
 				{
-					state: 'q0',
+					stateIndex: 'q0',
 					symbol: '0',
 					move: 'R',
 					newSymbol: '1',
-					newState: 'q0',
+					newStateIndex: 'q0',
 				},
 				{
-					state: 'q0',
+					stateIndex: 'q0',
 					symbol: '1',
 					move: 'L',
 					newSymbol: '0',
-					newState: 'q0',
+					newStateIndex: 'q0',
 				},
 			]);
 			cy.wait(1000);
@@ -82,10 +91,10 @@ describe('<TableView />', () => {
 			cy
 				.get('tbody tr td input')
 				.each((input, i) => {
-					const state = states[Math.floor(i / alphabet.length)];
+					const state = [...states.keys()][Math.floor(i / alphabet.length)];
 					const symbol = alphabet[i % alphabet.length];
-					const instruction = instructions.find(i => i.state === state && i.symbol === symbol);
-					const value = instruction ? `${instruction.newSymbol} ${instruction.move} ${instruction.newState}` : '';
+					const instruction = instructions.find(i => i.stateIndex === state && i.symbol === symbol);
+					const value = instruction ? `${instruction.newSymbol} ${instruction.move} ${instruction.newStateIndex}` : '';
 					expect(input).to.have.value(value);
 				});
 		});
@@ -98,7 +107,9 @@ describe('<TableView />', () => {
 			useStore.getState().setMachineState({
 				...useStore.getState().machineState,
 				alphabet: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd'],
-				states: ['q0', 'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q10', 'q11', 'q12', 'q13', 'q14', 'q15', 'q16', 'q17', 'q18', 'q19'],
+				states: ['q0', 'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q10', 'q11', 'q12', 'q13', 'q14', 'q15', 'q16', 'q17', 'q18', 'q19']
+					.map((s, i) => [i, s])
+					.reduce((map, [k, v]) => map.set(k, v), new Map()),
 			});
 
 			cy.wait(1000); // Wait for the debounce
@@ -140,7 +151,7 @@ describe('<TableView />', () => {
 				.contains('Add state')
 				.click()
 				.then(() => {
-					expect(useStore.getState().machineState.states).to.deep.eq(['q0', 'q1']);
+					expect([...useStore.getState().machineState.states.values()]).to.deep.eq(['!', 'q0', 'q1']);
 				});
 
 			cy
@@ -158,7 +169,7 @@ describe('<TableView />', () => {
 				.contains('Add state')
 				.click()
 				.then(() => {
-					expect(useStore.getState().machineState.states).to.deep.eq(['q1', '']);
+					expect([...useStore.getState().machineState.states.values()]).to.deep.eq(['!', 'q1', '']);
 				});
 
 			cy
@@ -173,7 +184,7 @@ describe('<TableView />', () => {
 				.findByDisplayValue('q0')
 				.type('{backspace}1')
 				.then(() => {
-					expect(useStore.getState().machineState.states).to.deep.eq(['q1']);
+					expect([...useStore.getState().machineState.states.values()]).to.deep.eq(['!', 'q1']);
 				});
 
 			cy
@@ -184,48 +195,31 @@ describe('<TableView />', () => {
 
 		it('should rename state in the instructions array', () => {
 			const testInstructions: Instruction[] = [{
-				state: 'q0', // This property should be changed
+				stateIndex: 0, // This property should be changed
 				symbol: '0',
 				move: 'R',
 				newSymbol: '1',
-				newState: 'q1', // This property should not be changed
+				newStateIndex: 1, // This property should not be changed
 			},
 			{
-				state: 'q1', // This property should not be changed
+				stateIndex: 1, // This property should not be changed
 				symbol: '1',
 				move: 'L',
 				newSymbol: '0',
-				newState: 'q0', // This property should be changed
+				newStateIndex: 0, // This property should be changed
 			}];
 			useStore.getState().setMachineState({
 				alphabet: testAlphabet,
-				states: ['q0', 'q1'],
+				states: new Map().set(0, 'q0').set(1, 'q1')
 			});
 			useStore.getState().setInstructions(testInstructions);
 
 			const newState = 'test';
 
+			cy.wait(1000);
 			cy
 				.findByDisplayValue('q0')
-				.type(`{selectAll}{backspace}${newState}`)
-				.then(() => {
-					expect(useStore.getState().machine.getInstructions()).to.deep.eq([
-						{
-							state: newState,
-							symbol: '0',
-							move: 'R',
-							newSymbol: '1',
-							newState: 'q1',
-						},
-						{
-							state: 'q1',
-							symbol: '1',
-							move: 'L',
-							newSymbol: '0',
-							newState: newState,
-						},
-					]);
-				});
+				.type(`{selectAll}{backspace}${newState}`);
 
 			cy
 				.findAllByDisplayValue(`${testInstructions[1].newSymbol} ${testInstructions[1].move} ${newState}`)
@@ -233,24 +227,24 @@ describe('<TableView />', () => {
 
 		});
 
-		it('should prevent from typing already taken state', () => {
+		it('should show error when state already taken', () => {
 			useStore.getState().setMachineState({
 				alphabet: testAlphabet,
-				states: ['q0', 'q1'],
+				states: new Map().set(0, 'q0').set(1, 'q1'),
 			});
 
 			cy
 				.findByDisplayValue('q0')
 				.type('{backspace}1')
-				.should('have.value', 'q') // Prevent from typing "1" because q1 is already taken
+				.should('have.value', 'q1')
 				.then(() => {
-					expect(useStore.getState().machineState.states).to.deep.eq(['q', 'q1']);
+					expect([...useStore.getState().machineState.states.values()]).to.deep.eq(['q1', 'q1']);
 				});
 
 			cy
-				.findAllByDisplayValue('q')
-				.type('N1{leftArrow}{backspace}')
-				.should('have.value', 'qN1');
+				.findAllByDisplayValue('q1')
+				.first()
+				.should('have.class', 'is-invalid');
 		});
 	});
 
@@ -258,7 +252,7 @@ describe('<TableView />', () => {
 		beforeEach(() => {
 			useStore.getState().setMachineState({
 				alphabet: testAlphabet,
-				states: ['q0', 'q1', 'q2'],
+				states: new Map().set(0, 'q0').set(1, 'q1').set(2, 'q2'),
 			});
 		});
 
@@ -275,7 +269,7 @@ describe('<TableView />', () => {
 				.should('be.visible')
 				.click()
 				.then(() => {
-					expect(useStore.getState().machineState.states).to.deep.eq(['q0', 'q1']);
+					expect([...useStore.getState().machineState.states.values()]).to.deep.eq(['q0', 'q1']);
 				});
 
 			cy
@@ -286,23 +280,23 @@ describe('<TableView />', () => {
 		it('should delete a state from the store', () => {
 			useStore.getState().setInstructions([
 				{ // This instruction should be deleted
-					state: 'q0',
+					stateIndex: 0,
 					symbol: '0',
 					move: 'R',
 					newSymbol: '1',
-					newState: 'q2',
+					newStateIndex: 2,
 				}, { // This instruction should be deleted
-					state: 'q2',
+					stateIndex: 2,
 					symbol: '0',
 					move: 'R',
 					newSymbol: '1',
-					newState: 'q1',
+					newStateIndex: 1,
 				}, { // This instruction should not be deleted
-					state: 'q1',
+					stateIndex: 1,
 					symbol: '0',
 					move: 'R',
 					newSymbol: '1',
-					newState: 'q1',
+					newStateIndex: 1,
 				}
 			]);
 
@@ -317,11 +311,11 @@ describe('<TableView />', () => {
 				.click()
 				.then(() => {
 					expect(useStore.getState().machine.getInstructions()).to.deep.eq([{
-						state: 'q1',
+						stateIndex: 1,
 						symbol: '0',
 						move: 'R',
 						newSymbol: '1',
-						newState: 'q1',
+						newStateIndex: 1,
 					}]);
 				});
 		});

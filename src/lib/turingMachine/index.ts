@@ -1,9 +1,10 @@
-import { Direction, Instruction, TuringMachineCondition, TuringMachineExtendedCondition, TuringMachineOptions } from './types';
+import { useStore } from '@/_store';
+import { Direction, ExtendedInstruction, Instruction, StateMapKey, TuringMachineCondition, TuringMachineExtendedCondition, TuringMachineOptions } from './types';
 
 export const defaultOptions: TuringMachineOptions = {
-	initialState: 'q0',
+	initialStateIndex: 0,
 	initialPosition: 0,
-	finalState: '!',
+	finalStateIndex: '!',
 	maxSteps: 1000
 };
 
@@ -39,9 +40,9 @@ export default class TuringMachine {
 	 * The options of the machine
 	 */
 	private options: TuringMachineOptions = {
-		initialState: defaultOptions.initialState,
+		initialStateIndex: defaultOptions.initialStateIndex,
 		initialPosition: defaultOptions.initialPosition,
-		finalState: defaultOptions.finalState,
+		finalStateIndex: defaultOptions.finalStateIndex,
 		maxSteps: defaultOptions.maxSteps
 	};
 	/**
@@ -55,7 +56,7 @@ export default class TuringMachine {
 		/**
 		 * The current state
 		 */
-		state: this.options.initialState,
+		stateIndex: this.options.initialStateIndex,
 		/**
 		 * The current head position relative to the tape value
 		 * @description The head position can be negative, but only blank symbols exist before 0
@@ -94,7 +95,7 @@ export default class TuringMachine {
 
 			const currentCondition = input.getCurrentCondition(); // Copy current condition
 			this.current.tapeValue = currentCondition.tapeValue;
-			this.current.state = currentCondition.state;
+			this.current.stateIndex = currentCondition.stateIndex;
 			this.current.headPosition = currentCondition.headPosition;
 			this.current.step = currentCondition.step;
 
@@ -106,7 +107,7 @@ export default class TuringMachine {
 		this.instructions = instructions;
 
 		if (options) {
-			if (options.initialState) this.current.state = options.initialState;
+			if (options.initialStateIndex) this.current.stateIndex = options.initialStateIndex;
 			if (options.initialPosition) this.current.headPosition = options.initialPosition;
 			this.setOptions(options);
 		}
@@ -153,16 +154,22 @@ export default class TuringMachine {
 	public getCurrentCondition(): TuringMachineExtendedCondition {
 		const symbol = this.current.tapeValue[this.current.headPosition] || TuringMachine.BLANK_SYMBOL;
 
-		let instruction: Instruction | null = null;
+		let instruction: ExtendedInstruction | null = null;
 		try {
-			instruction = this.getInstruction(this.current.state, symbol);
+			let res = this.getInstruction(this.current.stateIndex, symbol);
+			instruction = {
+				...res,
+				stateName: useStore.getState().machineState.states.get(res.stateIndex) || '',
+				newStateName: useStore.getState().machineState.states.get(res.newStateIndex) || ''
+			};
 		} catch { }
 
 		return {
 			...this.current,
 			symbol,
+			stateName: useStore.getState().machineState.states.get(this.current.stateIndex) || '',
 			instruction,
-			isFinalCondition: this.current.state === this.options.finalState
+			isFinalCondition: this.current.stateIndex === this.options.finalStateIndex
 		};
 	}
 
@@ -187,7 +194,7 @@ export default class TuringMachine {
 			logs.push(this.getCurrentCondition());
 			result = this.step();
 			// Check if final state reached
-			if (this.current.state === this.options.finalState) {
+			if (this.current.stateIndex === this.options.finalStateIndex) {
 				break;
 			}
 			// Check if maximum number of steps reached
@@ -207,7 +214,7 @@ export default class TuringMachine {
 	public reset() {
 		this.current = {
 			tapeValue: this.input,
-			state: this.options.initialState,
+			stateIndex: this.options.initialStateIndex,
 			headPosition: this.options.initialPosition,
 			step: 0
 		}
@@ -226,10 +233,10 @@ export default class TuringMachine {
 	 * @returns The new tape value
 	 */
 	public step(): string {
-		let { state, headPosition, tapeValue } = this.current;
+		let { stateIndex: state, headPosition, tapeValue } = this.current;
 
 		// If final state reached
-		if (state === this.options.finalState) {
+		if (state === this.options.finalStateIndex) {
 			return tapeValue;
 		}
 
@@ -260,7 +267,7 @@ export default class TuringMachine {
 	 * @returns The new tape value
 	 */
 	private executeInstruction(instruction: Instruction): string {
-		const { move, newState } = instruction;
+		const { move, newStateIndex: newState } = instruction;
 		let { newSymbol } = instruction;
 
 		let virtualTape = this.current.tapeValue;
@@ -273,7 +280,7 @@ export default class TuringMachine {
 
 		this.current = {
 			tapeValue: virtualTape.substring(0, this.current.headPosition) + newSymbol + virtualTape.substring(this.current.headPosition + 1),
-			state: newState,
+			stateIndex: newState,
 			headPosition: this.getNewHeadPosition(move),
 			step: this.current.step + 1
 		};
@@ -301,18 +308,29 @@ export default class TuringMachine {
 
 	/**
 	 * Gets the instruction for a given state and symbol
-	 * @param state 
+	 * @param stateIndex 
 	 * @param symbol  
 	 * @returns The instruction for the given state and symbol
+	 * @throws Will throw an error if no state is found for the given state index
 	 * @throws Will throw an error if no instruction is found
 	 */
-	private getInstruction(state: string, symbol: string): Instruction {
+	private getInstruction(stateIndex: StateMapKey, symbol: string): Instruction {
+		const states = useStore.getState().machineState.states;
+
+		// If no state found for the given state index
+		if (!states.has(stateIndex)) {
+			throw new Error(`No state found for index '${stateIndex}'`);
+		}
+
+		// Get instruction
 		const instruction = this.instructions.find(instruction => (
-			instruction.state === state && instruction.symbol === symbol
+			instruction.stateIndex === stateIndex && instruction.symbol === symbol
 		));
 
+		// If instruction is undefined
 		if (!instruction) {
-			throw new Error(`No instruction found for state '${state}' and symbol '${symbol}'`);
+			let stateName = states.get(stateIndex);
+			throw new Error(`No instruction found for state '${stateName}' and symbol '${symbol}'`);
 		}
 
 		return instruction;

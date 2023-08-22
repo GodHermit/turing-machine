@@ -2,21 +2,21 @@ import { useStore } from '@/_store';
 import { initialMachineState } from '@/_store/slices/machineStateSlice';
 import '@/app/globals.scss';
 import TuringMachine, { defaultOptions } from '@/lib/turingMachine';
-import { Instruction } from '@/lib/turingMachine/types';
+import { Instruction, StateMap } from '@/lib/turingMachine/types';
 import TableViewCell from './TableCell';
 
 const
 	testAlphabet = ['0', '1'],
-	testStates = ['q0', 'q1'],
+	testStates: StateMap = new Map().set(defaultOptions.finalStateIndex, '!').set(0, 'q0').set(1, 'q1'),
 	testMoveDirections: Instruction['move'][] = ['L', 'R', 'N'],
-	testNewStates = ['q0', 'q1', defaultOptions.finalState],
+	testNewStates = testStates,
 	testNewSymbols = ['0', '1', TuringMachine.BLANK_SYMBOL];
 
 const testInstruction: Instruction = {
-	state: testStates[0],
+	stateIndex: 0,
 	symbol: testAlphabet[0],
 	move: testMoveDirections[0],
-	newState: testNewStates[0],
+	newStateIndex: 0,
 	newSymbol: testNewSymbols[0],
 };
 
@@ -30,7 +30,7 @@ const mountWithTable = () => {
 			<tbody>
 				<tr>
 					<TableViewCell
-						instructionState={testInstruction.state}
+						instructionStateIndex={testInstruction.stateIndex}
 						instructionSymbol={testInstruction.symbol}
 					/>
 				</tr>
@@ -74,7 +74,7 @@ describe('<TableViewCell />', () => {
 
 		it('should render a cell with the instruction', () => {
 			cy
-				.findByDisplayValue(`${testInstruction.newSymbol} ${testInstruction.move} ${testInstruction.newState}`)
+				.findByDisplayValue(`${testInstruction.newSymbol} ${testInstruction.move} ${testStates.get(testInstruction.newStateIndex)}`)
 				.should('exist');
 		});
 	});
@@ -82,7 +82,7 @@ describe('<TableViewCell />', () => {
 
 describe('<TableViewCell /> work with instructions in the store (add, update, delete) ', () => {
 	it('should add instruction to the store', () => {
-		const value = `${testInstruction.newSymbol} ${testInstruction.move} ${testInstruction.newState}`;
+		const value = `${testInstruction.newSymbol} ${testInstruction.move} ${testStates.get(testInstruction.newStateIndex)}`;
 		cy
 			.get('.form-control')
 			.type(value);
@@ -94,60 +94,71 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 			});
 	});
 
-	it('should update instruction in the store', () => {
-		cy.log('**Add instruction**');
-		cy
-			.get('.form-control')
-			.type(`${testInstruction.newSymbol} ${testInstruction.move} ${testInstruction.newState}`)
-			.then(() => {
-				expect(useStore.getState().machine.getInstructions()).to.deep.equal([testInstruction]);
+	describe('update instruction in the store', () => {
+		const value = `${testInstruction.newSymbol} ${testInstruction.move} ${testStates.get(testInstruction.newStateIndex)}`;
+		beforeEach(() => {
+			cy.log('**Add instruction**');
+			cy
+				.get('.form-control')
+				.type(value)
+				.then(() => {
+					expect(useStore.getState().machine.getInstructions()).to.deep.equal([testInstruction]);
+				});
+		});
+
+		it('should update `newStateIndex` in the store', () => {
+			cy
+				.findByDisplayValue(value)
+				.type(`{backspace}{backspace}${testStates.get(1)}`)
+				.then(() => {
+					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
+						...testInstruction,
+						newStateIndex: 1,
+					}]);
+				});
+		});
+
+		it('should update `move` in the store', () => {
+			cy
+				.get('.form-control')
+				.type(
+					Array((testStates.get(testInstruction.newStateIndex) || '').length + 1)
+						.fill('{leftArrow}').join('')
+				); // Move cursor to skip new state
+
+			testMoveDirections.forEach((move, i) => {
+				cy
+					.findByDisplayValue(`${testInstruction.newSymbol} ${testMoveDirections[i - 1] || testInstruction.move} ${testStates.get(testInstruction.newStateIndex)}`)
+					.type(`{backspace}${move}`)
+					.then(() => {
+						expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
+							...testInstruction,
+							move,
+						}]);
+					});
 			});
-
-		cy.log('**Update newState**');
-		testNewStates.forEach((newState, i) => {
-			cy
-				.findByDisplayValue(`${testInstruction.newSymbol} ${testInstruction.move} ${testNewStates[i - 1] || testInstruction.newState}`)
-				.type(`{backspace}{backspace}${newState}`)
-				.then(() => {
-					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
-						...testInstruction,
-						newState,
-					}]);
-				});
 		});
 
-		cy.log('**Update move direction**');
-		const lastState = testNewStates[testNewStates.length - 1];
-		cy
-			.get('.form-control')
-			.type(Array(lastState.length + 1).fill('{leftArrow}').join('')); // Move cursor to skip newState
-		testMoveDirections.forEach((move, i) => {
+		it('should update `newSymbol` in the store', () => {
 			cy
-				.findByDisplayValue(`${testInstruction.newSymbol} ${testMoveDirections[i - 1] || testInstruction.move} ${lastState}`)
-				.type(`{backspace}${move}`)
-				.then(() => {
-					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
-						...testInstruction,
-						newState: lastState,
-						move,
-					}]);
-				});
-		});
+				.get('.form-control')
+				.type(
+					Array((testStates.get(testInstruction.newStateIndex) || '').length + 1)
+						.fill('{leftArrow}').join('')
+				) // Move cursor to skip new state
+				.type(
+					Array(testInstruction.move.length + 1)
+						.fill('{leftArrow}')
+						.join('')
+				); // Move cursor to skip move direction
 
-		cy.log('**Update newSymbol**');
-		const lastMove = testMoveDirections[testMoveDirections.length - 1];
-		cy
-			.get('.form-control')
-			.type(Array(lastMove.length + 1).fill('{leftArrow}').join('')); // Move cursor to skip move direction
-		testNewSymbols.forEach((newSymbol, i) => {
+			const newSymbol = testNewSymbols[1];
 			cy
-				.findByDisplayValue(`${testNewSymbols[i - 1] || testInstruction.newSymbol} ${lastMove} ${lastState}`)
+				.findByDisplayValue(value)
 				.type(`{backspace}${newSymbol}`)
 				.then(() => {
 					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
 						...testInstruction,
-						newState: lastState,
-						move: lastMove,
 						newSymbol,
 					}]);
 				});
@@ -156,15 +167,16 @@ describe('<TableViewCell /> work with instructions in the store (add, update, de
 
 	it('should delete instruction from the store', () => {
 		cy.log('**Add instruction**');
+		const value = `${testInstruction.newSymbol} ${testInstruction.move} ${testStates.get(testInstruction.newStateIndex)}`;
 		cy
 			.get('.form-control')
-			.type(`${testInstruction.newSymbol} ${testInstruction.move} ${testInstruction.newState}`)
+			.type(value)
 			.then(() => {
 				expect(useStore.getState().machine.getInstructions()).to.deep.equal([testInstruction]);
 			});
 
 		cy
-			.findByDisplayValue(`${testInstruction.newSymbol} ${testInstruction.move} ${testInstruction.newState}`)
+			.findByDisplayValue(value)
 			.clear();
 
 		cy
@@ -200,7 +212,7 @@ describe('<TableViewCell /> with invalid value', () => {
 		it('should be invalid', () => {
 			cy
 				.get('.form-control')
-				.type(`${testInstruction.newSymbol} ${invalidMoveDirection} ${testInstruction.newState}`)
+				.type(`${testInstruction.newSymbol} ${invalidMoveDirection} ${testInstruction.newStateIndex}`)
 				.should('have.class', 'is-invalid');
 		});
 	});
@@ -209,7 +221,7 @@ describe('<TableViewCell /> with invalid value', () => {
 		it('should be invalid', () => {
 			cy
 				.get('.form-control')
-				.type(`${invalidNewSymbol} ${testInstruction.move} ${testInstruction.newState}`)
+				.type(`${invalidNewSymbol} ${testInstruction.move} ${testInstruction.newStateIndex}`)
 				.should('have.class', 'is-invalid');
 		});
 	});
@@ -228,7 +240,7 @@ describe('<TableViewCell /> with invalid value', () => {
 
 describe('<TableViewCell /> with shorted instructions', () => {
 	context('Type only move direction', () => {
-		it(`should add instruction to the store with {newSymbol: ${testInstruction.symbol}, newState: ${testInstruction.state}}`, () => {
+		it(`should add instruction to the store with {newSymbol: ${testInstruction.symbol}, newState: ${testInstruction.stateIndex}}`, () => {
 			cy
 				.get('.form-control')
 				.type(`${testInstruction.move}`)
@@ -237,7 +249,7 @@ describe('<TableViewCell /> with shorted instructions', () => {
 						...testInstruction,
 						move: testInstruction.move,
 						newSymbol: testInstruction.symbol,
-						newState: testInstruction.state,
+						newStateIndex: testInstruction.stateIndex,
 					}]);
 				});
 		});
@@ -247,13 +259,13 @@ describe('<TableViewCell /> with shorted instructions', () => {
 		it(`should add instruction to the store with {move: ${TuringMachine.NONE}, newSymbol: ${testInstruction.symbol}}`, () => {
 			cy
 				.get('.form-control')
-				.type(`${defaultOptions.finalState}`)
+				.type(`${defaultOptions.finalStateIndex}`)
 				.then(() => {
 					expect(useStore.getState().machine.getInstructions()).to.deep.equal([{
 						...testInstruction,
 						move: TuringMachine.NONE,
 						newSymbol: testInstruction.symbol,
-						newState: defaultOptions.finalState,
+						newStateIndex: defaultOptions.finalStateIndex,
 					}]);
 				});
 		});

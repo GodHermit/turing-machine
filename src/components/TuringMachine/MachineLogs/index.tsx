@@ -28,7 +28,7 @@ export default function MachineLogs() {
 			</summary>
 			<ul className='list-group'>
 				{[...machineState.logs].reverse().map((log, i) => {
-					if(log instanceof Error) {
+					if (log instanceof Error) {
 						return (
 							<li key={`error-${i}`} className='list-group-item text-danger'>
 								<b>Error:</b> {log.message}
@@ -36,14 +36,14 @@ export default function MachineLogs() {
 						);
 					}
 
-					const isFinalState = log.instruction?.newState === machine.getOptions().finalState;
+					const isFinalState = log.instruction?.newStateIndex === machine.getOptions().finalStateIndex;
 					return (
 						<li key={log.step} className='list-group-item'>
-							<b>Step {log.step + 1}:</b> 〈{log.symbol}, {log.state}〉&rarr;〈{log.instruction?.newSymbol}, {log.instruction?.newState}〉
+							<b>Step {log.step + 1}:</b> 〈{log.symbol}, {log.stateName}〉&rarr;〈{log.instruction?.newSymbol}, {log.instruction?.newStateName}〉
 							({clsx(
 								`Write «${log.instruction?.newSymbol}», `,
 								log.instruction?.move !== 'N' && `shift ${moveDirection(log.instruction?.move)}, `,
-								isFinalState ? 'final state reached' : `go to state ${log.instruction?.newState}`
+								isFinalState ? 'final state reached' : `go to state ${log.instruction?.newStateName}`
 							)})
 						</li>
 					);
