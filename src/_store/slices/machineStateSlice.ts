@@ -59,12 +59,13 @@ export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) =>
 	setMachineState: (state) => set(s => ({ machineState: { ...s.machineState, ...state } })),
 	setMachineAlphabet: (alphabet) => set(s => {
 		let instructions = s.machine.getInstructions();
+		const extendedAlphabet = [...alphabet, ...TuringMachine.BLANK_SYMBOL];
 
 		// Remove instructions that are not in the new alphabet
 		instructions = instructions.filter(instruction => {
 			const { symbol, newSymbol } = instruction;
 
-			return alphabet.includes(symbol) && alphabet.includes(newSymbol);
+			return extendedAlphabet.includes(symbol) && extendedAlphabet.includes(newSymbol);
 		});
 
 		const newMachine = new TuringMachine(s.machine);
