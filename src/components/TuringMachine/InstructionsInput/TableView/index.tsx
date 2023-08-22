@@ -22,6 +22,7 @@ export default function TableView() {
 	]);
 	const debouncedMachineState = useDebounce(machineState, 500);
 	const alphabet = [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL];
+	const states = [...machineState.states].filter(state => state[0] !== '!')
 
 	return (
 		<>
@@ -36,7 +37,7 @@ export default function TableView() {
 						</tr>
 					</thead>
 					<tbody>
-						{machineState.states.length <= 0 && (
+						{states.length <= 0 && (
 							<tr>
 								<td
 									colSpan={alphabet.length + 1}
@@ -45,7 +46,7 @@ export default function TableView() {
 								</td>
 							</tr>
 						)}
-						{machineState.states.map((state, i) => (
+						{states.map((state, i) => (
 							<tr key={i}>
 								<th
 									scope='row'
@@ -55,17 +56,18 @@ export default function TableView() {
 										type='text'
 										className={clsx(
 											'form-control fw-bold text-center d-block h-100 border-0',
-											machineState.states.filter(s => s === state).length > 1 && 'is-invalid',
+											[...machineState.states.values()]
+												.filter(s => s === state[1]).length > 1 && 'is-invalid',
 										)}
-										value={state}
-										onChange={e => renameState(state, e.target.value)}
+										value={state[1]}
+										onChange={e => renameState(state[0], e.target.value)}
 										placeholder='Enter state'
 									/>
 									<button
 										type='button'
 										className={`btn btn-danger ${styles.DeleteRowButton}`}
 										aria-label='Delete row'
-										onClick={() => deleteState(state)}
+										onClick={() => deleteState(state[0])}
 									>
 										<MdClose />
 									</button>
@@ -73,7 +75,7 @@ export default function TableView() {
 								{alphabet.map((symbol) => (
 									<TableViewCell
 										key={i + symbol}
-										instructionState={state}
+										instructionStateIndex={state[0]}
 										instructionSymbol={symbol}
 									/>
 								))}

@@ -1,16 +1,16 @@
-import TuringMachine from '@/lib/turingMachine';
-import { Instruction, TuringMachineExtendedCondition } from '@/lib/turingMachine/types';
+import TuringMachine, { defaultOptions } from '@/lib/turingMachine';
+import { Instruction, StateMap, StateMapKey, TuringMachineExtendedCondition } from '@/lib/turingMachine/types';
 import { StateCreator } from 'zustand';
 
-export interface MachineState {
+export interface MachineRegisters {
 	/**
 	 * The alphabet of the Turing machine.
 	 */
 	alphabet: string[];
 	/**
-	 * Array of states of the Turing machine.
+	 * Map of states of the Turing machine.
 	 */
-	states: string[];
+	states: StateMap;
 	/**
 	 * Array of conditions of the Turing machine.
 	 */
@@ -18,7 +18,7 @@ export interface MachineState {
 }
 
 interface MachineActions {
-	setMachineState: (settings: Partial<MachineState>) => void;
+	setMachineState: (settings: Partial<MachineRegisters>) => void;
 	setMachineAlphabet: (alphabet: string[]) => void;
 	setInstructions: (instructions: Instruction[]) => void;
 	setHeadPosition: (position: number, isInitial?: boolean) => void;
@@ -34,23 +34,23 @@ interface MachineActions {
 	 * @param name Current name of the state
 	 * @param newName New name of the state
 	 */
-	renameState: (name: string, newName: string) => void;
+	renameState: (key: StateMapKey, newName: string) => void;
 	/**
 	 * Delete a state
 	 * @param stateName Name of the state to delete 
 	 */
-	deleteState: (name: string) => void;
+	deleteState: (key: StateMapKey) => void;
 }
 
-export const initialMachineState: MachineState = {
+export const initialMachineState: MachineRegisters = {
 	alphabet: [],
-	states: ['q0'],
+	states: new Map().set(defaultOptions.finalStateIndex, '!').set(0, 'q0'),
 	logs: []
 };
 
 export type MachineStateSlice = {
 	machine: TuringMachine;
-	machineState: MachineState
+	machineState: MachineRegisters
 } & MachineActions;
 
 export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) => ({
@@ -145,93 +145,77 @@ export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) =>
 		};
 	}),
 	addState: () => set(s => {
-		let newState = `q${s.machineState.states.length}`; // New state name
+		let newStateKey = Date.now();
+		let newState = `q${s.machineState.states.size - 1}`; // New state name
 
-		// If the new state name is already in use, leave it empty
-		if (s.machineState.states.includes(newState)) {
+		// If the new state name is already in use, increment the number
+		if ([...s.machineState.states.values()].includes(newState)) {
 			newState = '';
 		}
 
 		const newMachine = new TuringMachine(s.machine);
 		const options = newMachine.getOptions();
-		if (!options.initialState) {
-			newMachine.setOptions({ initialState: newState });
+		// If there is no initial state, set the new state as initial state
+		if (options.initialStateIndex === undefined) {
+			newMachine.setOptions({ initialStateIndex: newStateKey });
 		}
 
+		// If there is no final state, set the default final state
+		if (options.finalStateIndex === undefined) {
+			newMachine.setOptions({ finalStateIndex: defaultOptions.finalStateIndex });
+		}
+
+		// If there is no current state, set the new state as current state
 		const currentCondition = newMachine.getCurrentCondition();
-		if (!currentCondition.state) {
-			newMachine.setCurrentCondition({ state: newState });
+		if (currentCondition.stateIndex === undefined) {
+			newMachine.setCurrentCondition({ stateIndex: newStateKey });
 		}
 
 		return {
 			machine: newMachine,
 			machineState: {
 				...s.machineState,
-				states: [...s.machineState.states, newState]
+				states: new Map(s.machineState.states).set(newStateKey, newState)
 			}
 		};
 	}),
-	renameState: (name: string, newName: string) => set(s => {
-		// If the new name is already in use, don't change anything
-		if ([...s.machineState.states, s.machine.getOptions().finalState].includes(newName)) return {};
-
-		const newMachine = new TuringMachine(s.machine);
-
-		// Update the state name in the instructions
-		const newInstructions = newMachine.getInstructions()
-			.map(instruction => {
-				if (instruction.state === name) instruction.state = newName;
-				if (instruction.newState === name) instruction.newState = newName;
-				return instruction;
-			});
-		newMachine.setInstructions(newInstructions);
-
-		// Update state name in the options
-		const options = newMachine.getOptions();
-		newMachine.setOptions({
-			initialState: options.initialState === name ? newName : options.initialState,
-			finalState: options.finalState === name ? newName : options.finalState,
-		});
-
-		// Update state name in the current condition
-		const currentCondition = newMachine.getCurrentCondition();
-		newMachine.setCurrentCondition({
-			state: currentCondition.state === name ? newName : currentCondition.state,
-		});
-
+	renameState: (key: StateMapKey, newName: string) => set(s => {
 		return {
-			machine: newMachine,
 			machineState: {
 				...s.machineState,
-				states: s.machineState.states.map(state => state === name ? newName : state)
+				states: new Map(s.machineState.states).set(key, newName)
 			}
 		}
 	}),
-	deleteState: (name: string) => set(s => {
-		const newStates = s.machineState.states.filter(state => state !== name);
+	deleteState: (key: StateMapKey) => set(s => {
+		const newStates = new Map(s.machineState.states);
+		newStates.delete(key);
+
 		const newMachine = new TuringMachine(s.machine);
 
 		// Delete instructions that use the state
 		const newInstructions = newMachine.getInstructions()
 			.filter(instruction =>
-				instruction.state !== name &&
-				instruction.newState !== name
+				instruction.stateIndex !== key &&
+				instruction.newStateIndex !== key
 			);
 		newMachine.setInstructions(newInstructions);
 
-		const fallbackState = newStates[0];
+		const states = [...newStates].filter(state => state[0] !== defaultOptions.finalStateIndex);
+		// Get the first state as fallback
+		const fallbackStateIndex = states.length > 0 ? states[0][0] : undefined;
 
 		// Update state name in the options
 		const options = newMachine.getOptions();
 		newMachine.setOptions({
-			initialState: options.initialState === name ? fallbackState : options.initialState,
-			finalState: options.finalState === name ? fallbackState : options.finalState,
+			initialStateIndex: options.initialStateIndex === key ? fallbackStateIndex : options.initialStateIndex,
+			finalStateIndex: options.finalStateIndex === key ? fallbackStateIndex : options.finalStateIndex,
 		});
 
 		// Update state name in the current condition
 		const currentCondition = newMachine.getCurrentCondition();
 		newMachine.setCurrentCondition({
-			state: currentCondition.state === name ? fallbackState : currentCondition.state,
+			stateIndex: currentCondition.stateIndex === key ? fallbackStateIndex : currentCondition.stateIndex,
 		});
 
 		return {
