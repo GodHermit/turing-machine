@@ -2,24 +2,33 @@ import TuringMachine from '@/lib/turingMachine';
 import { StateMap, StateMapKey } from '@/lib/turingMachine/types';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { MachineStateSlice, createMachineStateSlice } from './slices/machineStateSlice';
-import { TapeSettingsSlice, createTapeSettingsSlice } from './slices/tapeSettingsSlice';
+import { MachineStateSlice, createMachineStateSlice, initialMachineState } from './slices/machineStateSlice';
+import { TapeSettingsSlice, createTapeSettingsSlice, initialTapeSettings } from './slices/tapeSettingsSlice';
 
-type StoreType = TapeSettingsSlice & MachineStateSlice;
+type StoreUtils = {
+	resetAll: () => void;
+};
+
+type StoreType = TapeSettingsSlice & MachineStateSlice & StoreUtils;
 
 export const useStore = create<StoreType>()(
 	persist(
 		(...a) => ({
 			...createTapeSettingsSlice(...a),
 			...createMachineStateSlice(...a),
+			resetAll: () => {
+				a[0](() => ({
+					machine: new TuringMachine(),
+					machineState: initialMachineState,
+					tapeSettings: initialTapeSettings,
+				}));
+			}
 		}),
 		{
 			name: 'turing-machine',
 			storage: createJSONStorage(() => localStorage, {
 				reviver: (key, value) => {
 					if (key === 'machine') {
-						// return new TuringMachine(value);
-						console.log('new machine', value);
 						const newMachine = new TuringMachine(
 							(value as any).input,
 							(value as any).instructions,
