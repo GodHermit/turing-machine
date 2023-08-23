@@ -51,6 +51,8 @@ $input-placeholder-color: $gray-500;
 @import "~bootstrap/scss/tables";
 @import "~bootstrap/scss/alert";
 @import "~bootstrap/scss/list-group";
+@import "~bootstrap/scss/placeholders";
+@import "~bootstrap/scss/spinners";
 
 // 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
 @import "~bootstrap/scss/utilities/api";
@@ -73,6 +75,14 @@ $input-placeholder-color: $gray-500;
 		$hover-background: $white,
 		$hover-border: $gray-500,
 		$hover-color: $black);
+}
+
+.placeholder {
+	background-color: $white;
+	border: 2px dashed $border-color;
+	border-radius: $border-radius;
+	color: transparent;
+	pointer-events: none;
 }
 
 body {
