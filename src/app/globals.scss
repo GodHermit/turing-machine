@@ -33,6 +33,18 @@ $input-focus-border-color: $gray-400;
 $input-focus-box-shadow: none !important;
 $input-placeholder-color: $gray-500;
 
+//Dropdown
+$dropdown-padding-x: .5rem;
+$dropdown-padding-y: .5rem;
+$dropdown-border-color: $border-color;
+
+$dropdown-link-hover-bg: var(--#{$prefix}secondary-bg);
+
+$dropdown-link-active-color: $component-active-color;
+$dropdown-link-active-bg: $component-active-bg;
+
+$dropdown-item-padding-y: $spacer * .25;
+$dropdown-item-padding-x: $spacer * .5;
 
 // 5. Include remainder of required parts
 @import "~bootstrap/scss/maps";
@@ -51,11 +63,18 @@ $input-placeholder-color: $gray-500;
 @import "~bootstrap/scss/tables";
 @import "~bootstrap/scss/alert";
 @import "~bootstrap/scss/list-group";
+@import "~bootstrap/scss/placeholders";
+@import "~bootstrap/scss/spinners";
+@import "~bootstrap/scss/dropdown";
 
 // 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
 @import "~bootstrap/scss/utilities/api";
 
 // 8. Add additional custom code here
+
+:root {
+	--bs-dropdown-item-border-radius: 4px;
+}
 
 .btn-primary {
 	@include button-variant($background: $black,
@@ -75,8 +94,49 @@ $input-placeholder-color: $gray-500;
 		$hover-color: $black);
 }
 
-body {
-	overflow: overlay;
+.placeholder {
+	background-color: $white;
+	border: 2px dashed $border-color;
+	border-radius: $border-radius;
+	color: transparent;
+	pointer-events: none;
+}
+
+.dropdown {
+	&-without-caret {
+		.dropdown-toggle::after {
+			display: none;
+		}
+	}
+
+	&-menu {
+		box-shadow: $box-shadow-sm;
+	}
+
+	&-item {
+		display: flex;
+		align-items: center;
+		transition: background 0.2s ease-in-out;
+
+		& svg:first-child {
+			margin-right: 0.25rem;
+			color: $gray-600;
+			transition: color 0.2s ease-in-out;
+		}
+
+		&:hover svg {
+			color: $gray-800;
+		}
+
+		&:active svg {
+			transition: none;
+			color: inherit;
+		}
+	}
+
+	&-divider {
+		border-top: $border-width dashed $border-color;
+	}
 }
 
 main {

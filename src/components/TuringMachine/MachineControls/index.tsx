@@ -2,6 +2,8 @@
 
 import { useStore } from '@/_store';
 import { useMemo } from 'react';
+import { Dropdown } from 'react-bootstrap';
+import { MdDelete, MdMoreVert } from 'react-icons/md';
 
 export default function MachineControls() {
 	const [
@@ -9,11 +11,13 @@ export default function MachineControls() {
 		machineState,
 		executeMachine,
 		resetMachine,
+		resetAll
 	] = useStore(state => [
 		state.machine,
 		state.machineState,
 		state.executeMachine,
-		state.resetMachine
+		state.resetMachine,
+		state.resetAll
 	]);
 	/**
 	 * Machine current condition
@@ -66,6 +70,15 @@ export default function MachineControls() {
 		resetMachine();
 	};
 
+	/**
+	 * Handle full reset button click
+	 */
+	const handleFullReset = () => {
+		if (confirm('Are you really want to reset the machine?')) {
+			resetAll();
+		}
+	};
+
 	return (
 		<>
 			<p className='form-label'>Machine:</p>
@@ -78,7 +91,7 @@ export default function MachineControls() {
 					Run
 				</button>
 				<button
-					className='col btn btn-secondary'
+					className='col-12 col-md-4 btn btn-secondary'
 					onClick={() => handleAction('step')}
 					disabled={isControlsDisabled}
 				>
@@ -91,6 +104,23 @@ export default function MachineControls() {
 				>
 					Reset
 				</button>
+				<Dropdown className='col-2 col-md-1 p-0 dropdown-without-caret'>
+					<Dropdown.Toggle
+						className='w-100 h-100 p-1'
+						variant='secondary'
+						id='dropdown-basic'
+					>
+						<MdMoreVert />
+					</Dropdown.Toggle>
+					<Dropdown.Menu align='end'>
+						<Dropdown.Item
+							as='button'
+							onClick={handleFullReset}
+						>
+							<MdDelete />Full reset
+						</Dropdown.Item>
+					</Dropdown.Menu>
+				</Dropdown>
 			</div>
 			{machine.getCurrentCondition().isFinalCondition && (
 				<div className='alert alert-success mt-2 mb-0' role='alert'>

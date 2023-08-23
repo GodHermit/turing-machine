@@ -1,10 +1,17 @@
-import AlphabetInput from '@/components/TuringMachine/AlphabetInput';
-import InstructionsInput from '@/components/TuringMachine/InstructionsInput';
-import MachineControls from '@/components/TuringMachine/MachineControls';
-import MachineLogs from '@/components/TuringMachine/MachineLogs';
-import Tape from '@/components/TuringMachine/Tape';
-import TapeInput from '@/components/TuringMachine/TapeInput';
+import AlpahbetInputPlaceholder from '@/components/TuringMachine/AlphabetInput/Placeholder';
+import InstructionsInputPlaceholder from '@/components/TuringMachine/InstructionsInput/Placeholder';
+import MachineControlsPlaceholder from '@/components/TuringMachine/MachineControls/Placeholder';
+import TapePlaceholder from '@/components/TuringMachine/Tape/Placeholder';
+import TapeInputPlaceholder from '@/components/TuringMachine/TapeInput/Placeholder';
 import { Metadata } from 'next';
+import dynamic from 'next/dynamic';
+
+const AlphabetInput = dynamic(() => import('@/components/TuringMachine/AlphabetInput'), { ssr: false, loading: AlpahbetInputPlaceholder });
+const InstructionsInput = dynamic(() => import('@/components/TuringMachine/InstructionsInput'), { ssr: false, loading: InstructionsInputPlaceholder });
+const MachineControls = dynamic(() => import('@/components/TuringMachine/MachineControls'), { ssr: false, loading: MachineControlsPlaceholder });
+const MachineLogs = dynamic(() => import('@/components/TuringMachine/MachineLogs'), { ssr: false });
+const Tape = dynamic(() => import('@/components/TuringMachine/Tape'), { ssr: false, loading: TapePlaceholder });
+const TapeInput = dynamic(() => import('@/components/TuringMachine/TapeInput'), { ssr: false, loading: TapeInputPlaceholder });
 
 const basePath = '/turing-machine';
 export const metadata: Metadata = {
