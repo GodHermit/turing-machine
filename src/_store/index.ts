@@ -2,8 +2,8 @@ import TuringMachine from '@/lib/turingMachine';
 import { StateMap, StateMapKey } from '@/lib/turingMachine/types';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { MachineStateSlice, createMachineStateSlice, initialMachineState } from './slices/machineStateSlice';
-import { TapeSettingsSlice, createTapeSettingsSlice, initialTapeSettings } from './slices/tapeSettingsSlice';
+import { MachineStateSlice, createMachineStateSlice } from './slices/machineStateSlice';
+import { TapeSettingsSlice, createTapeSettingsSlice } from './slices/tapeSettingsSlice';
 
 type StoreUtils = {
 	resetAll: () => void;
@@ -17,44 +17,79 @@ export const useStore = create<StoreType>()(
 			...createTapeSettingsSlice(...a),
 			...createMachineStateSlice(...a),
 			resetAll: () => {
-				a[0](() => ({
-					machine: new TuringMachine(),
-					machineState: initialMachineState,
-					tapeSettings: initialTapeSettings,
-				}));
+				const [set, get, store] = a;
+
+				store.persist.clearStorage();
+				window.location.reload();
 			}
 		}),
 		{
 			name: 'turing-machine',
 			storage: createJSONStorage(() => localStorage, {
 				reviver: (key, value) => {
-					if (key === 'machine') {
-						const newMachine = new TuringMachine(
-							(value as any).input,
-							(value as any).instructions,
-							(value as any).options
-						);
-						newMachine.setCurrentCondition((value as any).current);
+					switch (key) {
+						case 'machine':
+							// Convert object to instance of TuringMachine
+							const newMachine = new TuringMachine(
+								(value as any).input,
+								(value as any).instructions,
+								(value as any).options
+							);
+							newMachine.setCurrentCondition((value as any).current);
 
-						return newMachine;
+							return newMachine;
+
+						case 'states':
+							// Convert array of entries to Map
+							return (value as Array<[StateMapKey, string]>)
+								.reduce((acc, [key, value]) => {
+									acc.set(key, value);
+									return acc;
+								}, new Map<StateMapKey, string>());
+
+						case 'logs':
+							// Convert objects with type 'error' to instances of Error
+							return (value as Array<any>)
+								.map(log => {
+									if (log.type === 'error') {
+										return new Error(log.message, {
+											cause: log.cause,
+										});
+									}
+
+									return log;
+								});
+
+						default:
+							// Return value as is
+							return value;
 					}
-
-					if (key === 'states') {
-						return (value as Array<[StateMapKey, string]>)
-							.reduce((acc, [key, value]) => {
-								acc.set(key, value);
-								return acc;
-							}, new Map<StateMapKey, string>());
-					}
-
-					return value;
 				},
 				replacer: (key, value) => {
-					if (key === 'states') {
-						return [...(value as StateMap).entries()];
-					}
+					switch (key) {
+						case 'states':
+							// Convert Map to array of entries
+							return [...(value as StateMap).entries()];
 
-					return value;
+						case 'logs':
+							// Convert instances of Error to plain objects
+							return (value as StoreType['machineState']['logs'])
+								.map(log => {
+									if (log instanceof Error) {
+										return {
+											type: 'error',
+											message: log.message,
+											cause: log.cause,
+										};
+									}
+
+									return log;
+								});
+
+						default:
+							// Return value as is
+							return value;
+					}
 				}
 			})
 		}
