@@ -27,33 +27,69 @@ export const useStore = create<StoreType>()(
 			name: 'turing-machine',
 			storage: createJSONStorage(() => localStorage, {
 				reviver: (key, value) => {
-					if (key === 'machine') {
-						const newMachine = new TuringMachine(
-							(value as any).input,
-							(value as any).instructions,
-							(value as any).options
-						);
-						newMachine.setCurrentCondition((value as any).current);
+					switch (key) {
+						case 'machine':
+							// Convert object to instance of TuringMachine
+							const newMachine = new TuringMachine(
+								(value as any).input,
+								(value as any).instructions,
+								(value as any).options
+							);
+							newMachine.setCurrentCondition((value as any).current);
 
-						return newMachine;
+							return newMachine;
+
+						case 'states':
+							// Convert array of entries to Map
+							return (value as Array<[StateMapKey, string]>)
+								.reduce((acc, [key, value]) => {
+									acc.set(key, value);
+									return acc;
+								}, new Map<StateMapKey, string>());
+
+						case 'logs':
+							// Convert objects with type 'error' to instances of Error
+							return (value as Array<any>)
+								.map(log => {
+									if (log.type === 'error') {
+										return new Error(log.message, {
+											cause: log.cause,
+										});
+									}
+
+									return log;
+								});
+
+						default:
+							// Return value as is
+							return value;
 					}
-
-					if (key === 'states') {
-						return (value as Array<[StateMapKey, string]>)
-							.reduce((acc, [key, value]) => {
-								acc.set(key, value);
-								return acc;
-							}, new Map<StateMapKey, string>());
-					}
-
-					return value;
 				},
 				replacer: (key, value) => {
-					if (key === 'states') {
-						return [...(value as StateMap).entries()];
-					}
+					switch (key) {
+						case 'states':
+							// Convert Map to array of entries
+							return [...(value as StateMap).entries()];
 
-					return value;
+						case 'logs':
+							// Convert instances of Error to plain objects
+							return (value as StoreType['machineState']['logs'])
+								.map(log => {
+									if (log instanceof Error) {
+										return {
+											type: 'error',
+											message: log.message,
+											cause: log.cause,
+										};
+									}
+
+									return log;
+								});
+
+						default:
+							// Return value as is
+							return value;
+					}
 				}
 			})
 		}
