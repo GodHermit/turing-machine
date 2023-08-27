@@ -28,7 +28,7 @@
     "zustand": "^4.3.9"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.22.5",
+    "@babel/preset-typescript": "^7.22.11",
     "@bahmutov/cypress-code-coverage": "^2.6.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@testing-library/cypress": "^9.0.0",
