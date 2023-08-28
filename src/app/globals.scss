@@ -33,6 +33,10 @@ $input-focus-border-color: $gray-400;
 $input-focus-box-shadow: none !important;
 $input-placeholder-color: $gray-500;
 
+//Select
+$form-select-focus-border-color: $gray-400;
+$form-select-focus-box-shadow: none !important;
+
 //Dropdown
 $dropdown-padding-x: .5rem;
 $dropdown-padding-y: .5rem;
@@ -45,6 +49,9 @@ $dropdown-link-active-bg: $component-active-bg;
 
 $dropdown-item-padding-y: $spacer * .25;
 $dropdown-item-padding-x: $spacer * .5;
+
+//Modal
+@import '@/_styles/modal';
 
 // 5. Include remainder of required parts
 @import "~bootstrap/scss/maps";
@@ -66,6 +73,8 @@ $dropdown-item-padding-x: $spacer * .5;
 @import "~bootstrap/scss/placeholders";
 @import "~bootstrap/scss/spinners";
 @import "~bootstrap/scss/dropdown";
+@import "~bootstrap/scss/modal";
+@import "~bootstrap/scss/close";
 
 // 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
 @import "~bootstrap/scss/utilities/api";
@@ -138,6 +147,12 @@ $dropdown-item-padding-x: $spacer * .5;
 		border-top: $border-width dashed $border-color;
 	}
 }
+
+select.form-select:required:invalid {
+	color: $input-placeholder-color;
+}
+
+@import '@/_styles/modal/styles';
 
 main {
 	// display: flex;
