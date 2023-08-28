@@ -1,0 +1,22 @@
+$modal-inner-padding: $spacer 0;
+
+$modal-footer-margin-between: 0;
+
+$modal-dialog-margin: .5rem;
+$modal-dialog-margin-y-sm-up: 1.75rem;
+
+$modal-title-line-height: $line-height-base;
+
+$modal-content-border-color: var(--#{$prefix}border-color);
+$modal-content-inner-border-radius: subtract($modal-content-border-radius, $modal-content-border-width);
+
+$modal-backdrop-opacity: 1;
+$modal-backdrop-bg: rgba($black, .75);
+
+$modal-header-border-color: var(--#{$prefix}border-color);
+$modal-header-border-width: $modal-content-border-width;
+
+$modal-fade-transform: scale(0.8);
+$modal-show-transform: none;
+$modal-transition: transform .3s ease-out;
+$modal-scale-transform: scale(1.02);

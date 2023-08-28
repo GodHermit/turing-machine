@@ -3,7 +3,9 @@
 import { useStore } from '@/_store';
 import { useMemo } from 'react';
 import { Dropdown } from 'react-bootstrap';
-import { MdDelete, MdMoreVert } from 'react-icons/md';
+import { MdDelete, MdMoreVert, MdSettings } from 'react-icons/md';
+import { useBoolean } from 'usehooks-ts';
+import OptionsModal from '../OptionsModal';
 
 export default function MachineControls() {
 	const [
@@ -46,6 +48,15 @@ export default function MachineControls() {
 		return currentCondition.step === 0 &&
 			machineError.isError === false
 	}, [currentCondition.step, machineError]);
+
+	/**
+	 * Value and handlers for `OptionsModal` visibility
+	 */
+	const {
+		value: isOptionModaVisible,
+		setTrue: showOptionsModal,
+		setFalse: hideOptionsModal
+	} = useBoolean(false);
 
 	/**
 	 * Handle action button click
@@ -115,6 +126,13 @@ export default function MachineControls() {
 					<Dropdown.Menu align='end'>
 						<Dropdown.Item
 							as='button'
+							onClick={showOptionsModal}
+						>
+							<MdSettings />Options
+						</Dropdown.Item>
+						<Dropdown.Divider />
+						<Dropdown.Item
+							as='button'
 							onClick={handleFullReset}
 						>
 							<MdDelete />Full reset
@@ -132,6 +150,11 @@ export default function MachineControls() {
 					<b>Error!</b> {machineError.message}
 				</div>
 			)}
+			<OptionsModal
+				show={isOptionModaVisible}
+				onShow={showOptionsModal}
+				onHide={hideOptionsModal}
+			/>
 		</>
 	);
 }

@@ -1,5 +1,5 @@
 import TuringMachine, { defaultOptions } from '@/lib/turingMachine';
-import { Instruction, StateMap, StateMapKey, TuringMachineExtendedCondition } from '@/lib/turingMachine/types';
+import { Instruction, StateMap, StateMapKey, TuringMachineExtendedCondition, TuringMachineOptions } from '@/lib/turingMachine/types';
 import { StateCreator } from 'zustand';
 
 export interface MachineRegisters {
@@ -40,6 +40,12 @@ interface MachineActions {
 	 * @param stateName Name of the state to delete 
 	 */
 	deleteState: (key: StateMapKey) => void;
+
+	/**
+	 * Set the options of the machine
+	 * @param options Options to set
+	 */
+	setOptions: (options: Partial<TuringMachineOptions>) => void;
 }
 
 export const initialMachineState: MachineRegisters = {
@@ -225,6 +231,36 @@ export const createMachineStateSlice: StateCreator<MachineStateSlice> = (set) =>
 				...s.machineState,
 				states: newStates
 			}
+		};
+	}),
+	setOptions: (options: Partial<TuringMachineOptions>) => set(s => {
+		const newMachine = new TuringMachine(s.machine);
+
+		// If provided initial state is not valid
+		if (options.initialStateIndex !== undefined && !s.machineState.states.get(options.initialStateIndex)) {
+			const states = [...s.machineState.states].filter(([key]) => key !== defaultOptions.finalStateIndex);
+			// Get the first state as fallback
+			const fallbackStateIndex = states.length > 0 ? states[0][0] : undefined;
+
+			// Set fallback state as initial state
+			options.initialStateIndex = fallbackStateIndex;
+		}
+
+		// Set options
+		newMachine.setOptions(options);
+
+		// If machine is not running, set current condition
+		if (newMachine.getCurrentCondition().step === 0) {
+			const currentCondition = newMachine.getCurrentCondition();
+
+			newMachine.setCurrentCondition({
+				stateIndex: options.initialStateIndex ?? currentCondition.stateIndex,
+				headPosition: options.initialPosition ?? currentCondition.headPosition
+			});
+		}
+
+		return {
+			machine: newMachine
 		};
 	}),
 });
