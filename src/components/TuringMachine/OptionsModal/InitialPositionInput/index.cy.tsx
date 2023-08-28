@@ -32,6 +32,39 @@ describe('<InitialPositionInput />', () => {
 			.and('have.text', 'Relative to the start of the tape value string.');
 	});
 
+	it('should change options while input is valid', () => {
+		const validNumber = 100;
+
+		cy
+			.get('input')
+			.clear()
+			.type(`${validNumber}`)
+			.then(() => {
+				expect(useStore.getState().machine.getOptions().initialPosition).to.equal(validNumber);
+			});
+	});
+
+	it('should syncronize input with options', () => {
+		const validNumber = 100;
+		cy
+			.wrap(useStore.getState())
+			.as('getState')
+			.invoke('setOptions', { initialPosition: validNumber });
+
+		cy
+			.get('input')
+			.should('have.value', validNumber.toString());
+
+		const newValidNumber = 200;
+		cy
+			.get('@getState')
+			.invoke('setOptions', { initialPosition: newValidNumber });
+
+		cy
+			.get('input')
+			.should('have.value', newValidNumber.toString());
+	});
+
 	describe('when input is invalid', () => {
 
 		context('when input is empty', () => {

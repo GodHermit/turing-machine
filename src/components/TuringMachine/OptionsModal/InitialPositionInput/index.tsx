@@ -63,8 +63,6 @@ export default function InitialPositionInput() {
 			!schema.isValidSync(e.target.valueAsNumber) ||
 			isInputInvalid.value
 		) {
-			console.log('invalid');
-
 			return;
 		}
 
