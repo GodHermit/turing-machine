@@ -10,11 +10,13 @@ export default function TapeInput() {
 	const [
 		machine,
 		machineState,
+		blankSymbol,
 		setMachineState,
 		setHeadPosition
 	] = useStore(state => [
 		state.machine,
 		state.machineState,
+		state.tapeSettings.blankSymbol,
 		state.setMachineState,
 		state.setHeadPosition,
 	]);
@@ -24,8 +26,8 @@ export default function TapeInput() {
 	 * Alphabet with blank symbol
 	 */
 	const alphabet = useMemo(() => (
-		[...machineState.alphabet, TuringMachine.BLANK_SYMBOL]
-	), [machineState.alphabet]);
+		[...machineState.alphabet, blankSymbol]
+	), [machineState.alphabet, blankSymbol]);
 
 	/**
 	 * Rules for invalid input:
