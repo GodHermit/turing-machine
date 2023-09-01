@@ -3,7 +3,7 @@ import { StateMap, StateMapKey } from '@/lib/turingMachine/types';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { MachineSlice, createMachineSlice } from './slices/machineSlice';
-import { MachineStateSlice, createMachineStateSlice } from './slices/machineStateSlice';
+import { RegistersSlice, createRegistersSlice } from './slices/registersSlice';
 import { TapeSettingsSlice, createTapeSettingsSlice } from './slices/tapeSettingsSlice';
 
 type StoreUtils = {
@@ -12,7 +12,7 @@ type StoreUtils = {
 
 export type StoreType = MachineSlice &
 	TapeSettingsSlice &
-	MachineStateSlice &
+	RegistersSlice &
 	StoreUtils;
 
 export const useStore = create<StoreType>()(
@@ -20,7 +20,7 @@ export const useStore = create<StoreType>()(
 		(...a) => ({
 			...createMachineSlice(...a),
 			...createTapeSettingsSlice(...a),
-			...createMachineStateSlice(...a),
+			...createRegistersSlice(...a),
 			resetAll: () => {
 				const [set, get, store] = a;
 
@@ -83,7 +83,7 @@ export const useStore = create<StoreType>()(
 
 						case 'logs':
 							// Convert instances of Error to plain objects
-							return (value as StoreType['machineState']['logs'])
+							return (value as StoreType['registers']['logs'])
 								.map(log => {
 									if (log instanceof Error) {
 										return {

@@ -9,15 +9,15 @@ import { useMemo, useState } from 'react';
 export default function TapeInput() {
 	const [
 		machine,
-		machineState,
+		registers,
 		blankSymbol,
-		setMachineState,
+		setRegisters,
 		setHeadPosition
 	] = useStore(state => [
 		state.machine,
-		state.machineState,
+		state.registers,
 		state.tapeSettings.blankSymbol,
-		state.setMachineState,
+		state.setRegisters,
 		state.setHeadPosition,
 	]);
 	const [value, setValue] = useState(machine.getInput());
@@ -26,8 +26,8 @@ export default function TapeInput() {
 	 * Alphabet with blank symbol
 	 */
 	const alphabet = useMemo(() => (
-		[...machineState.alphabet, blankSymbol]
-	), [machineState.alphabet, blankSymbol]);
+		[...registers.alphabet, blankSymbol]
+	), [registers.alphabet, blankSymbol]);
 
 	/**
 	 * Rules for invalid input:
@@ -36,7 +36,7 @@ export default function TapeInput() {
 		(): { value: boolean, feedback: string } => {
 			// If input does not match the alphabet
 			if (
-				machineState.alphabet.length > 0 &&
+				registers.alphabet.length > 0 &&
 				!validateString(value, alphabet)
 			) {
 				return {
@@ -51,7 +51,7 @@ export default function TapeInput() {
 		},
 		[
 			value,
-			machineState.alphabet,
+			registers.alphabet,
 			alphabet
 		]
 	);
@@ -63,13 +63,13 @@ export default function TapeInput() {
 		() => (
 			isInputInvalid?.value || // If input does not match the alphabet
 			machine.getCurrentCondition().tapeValue === value || // If input is already written to the tape
-			new Set(machineState.alphabet).size !== machineState.alphabet.length // If alphabet has duplicate characters (this is the same rule as in AlphabetInput
+			new Set(registers.alphabet).size !== registers.alphabet.length // If alphabet has duplicate characters (this is the same rule as in AlphabetInput
 		),
 		[
 			machine,
 			isInputInvalid,
 			value,
-			machineState.alphabet
+			registers.alphabet
 		]
 	);
 
@@ -78,14 +78,14 @@ export default function TapeInput() {
 	 */
 	const handleWriteToTape = () => {
 		// If alphabet is not yet created, create it
-		if (machineState.alphabet.length === 0) {
-			setMachineState({
+		if (registers.alphabet.length === 0) {
+			setRegisters({
 				alphabet: createAlphabet(value),
 			});
 		}
 
 		if (
-			machineState.alphabet.length > 0 && // If alphabet is created
+			registers.alphabet.length > 0 && // If alphabet is created
 			!validateString(value, alphabet) // If input does not match the alphabet
 		) {
 			return;

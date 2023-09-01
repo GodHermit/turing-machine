@@ -159,15 +159,15 @@ export default class TuringMachine {
 			let res = this.getInstruction(this.current.stateIndex, symbol);
 			instruction = {
 				...res,
-				stateName: useStore.getState().machineState.states.get(res.stateIndex) || '',
-				newStateName: useStore.getState().machineState.states.get(res.newStateIndex) || ''
+				stateName: useStore.getState().registers.states.get(res.stateIndex) || '',
+				newStateName: useStore.getState().registers.states.get(res.newStateIndex) || ''
 			};
 		} catch { }
 
 		return {
 			...this.current,
 			symbol,
-			stateName: useStore.getState().machineState.states.get(this.current.stateIndex) || '',
+			stateName: useStore.getState().registers.states.get(this.current.stateIndex) || '',
 			instruction,
 			isFinalCondition: this.current.stateIndex === this.options.finalStateIndex
 		};
@@ -327,7 +327,7 @@ export default class TuringMachine {
 	 * @throws Will throw an error if no instruction is found
 	 */
 	private getInstruction(stateIndex: StateMapKey, symbol: string): Instruction {
-		const states = useStore.getState().machineState.states;
+		const states = useStore.getState().registers.states;
 
 		// If no state found for the given state index
 		if (!states.has(stateIndex)) {

@@ -1,9 +1,9 @@
 import { useStore } from '@/_store';
-import { initialMachineState } from '@/_store/slices/machineStateSlice';
+import { initialRegisters } from '@/_store/slices/registersSlice';
 import '@/app/globals.scss';
+import TuringMachine from '@/lib/turingMachine';
 import AlphabetInput from '../AlphabetInput';
 import TapeInput from './index';
-import TuringMachine from '@/lib/turingMachine';
 
 describe('<TapeInput />', () => {
 	beforeEach(() => {
@@ -12,7 +12,7 @@ describe('<TapeInput />', () => {
 			.findByLabelText('Input:')
 			.as('tapeInput')
 			.clear();
-		useStore.getState().setMachineState(initialMachineState);
+		useStore.getState().setRegisters(initialRegisters);
 
 		useStore.setState({
 			machine: new TuringMachine(),
@@ -52,7 +52,6 @@ describe('<TapeInput />', () => {
 			.click()
 			.should('be.disabled');
 
-		// const options = useStore.getState().machineState.options;
 		cy
 			.get('@setState')
 			.should('be.calledWith', {

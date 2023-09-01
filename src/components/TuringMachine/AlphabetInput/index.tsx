@@ -5,13 +5,13 @@ import Input from '@/components/Input';
 import { useEffect, useMemo, useState } from 'react';
 
 export default function AlphabetInput() {
-	const [machineState, setMachineAlphabet] = useStore(state => [state.machineState, state.setMachineAlphabet]);
+	const [registers, setMachineAlphabet] = useStore(state => [state.registers, state.setAlphabet]);
 	const blankSymbol = useStore(state => state.tapeSettings.blankSymbol);
-	const [alphabet, setAlphabet] = useState(machineState.alphabet.join(''));
+	const [alphabet, setAlphabet] = useState(registers.alphabet.join(''));
 
 	useEffect(() => {
-		setAlphabet(machineState.alphabet.join(''));
-	}, [machineState.alphabet]);
+		setAlphabet(registers.alphabet.join(''));
+	}, [registers.alphabet]);
 
 	/**
 	 * Rules for invalid input:

@@ -6,7 +6,7 @@ const states = new Map().set('!', '!').set(0, 'q0');
 
 describe('<InitialStateSelect />', () => {
 	beforeEach(() => {
-		useStore.getState().setMachineState({
+		useStore.getState().setRegisters({
 			states
 		});
 
@@ -34,7 +34,7 @@ describe('<InitialStateSelect />', () => {
 		beforeEach(() => {
 			useStore
 				.getState()
-				.setMachineState({
+				.setRegisters({
 					states: new Map().set('!', '!')
 				});
 		});
@@ -62,7 +62,7 @@ describe('<InitialStateSelect />', () => {
 
 	describe('handleChange()', () => {
 		beforeEach(() => {
-			useStore.getState().setMachineState({
+			useStore.getState().setRegisters({
 				states: states.set(1, 'q1')
 			});
 			cy.get('select').select('0');

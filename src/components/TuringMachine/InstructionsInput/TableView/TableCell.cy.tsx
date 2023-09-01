@@ -1,5 +1,5 @@
 import { useStore } from '@/_store';
-import { initialMachineState } from '@/_store/slices/machineStateSlice';
+import { initialRegisters } from '@/_store/slices/registersSlice';
 import '@/app/globals.scss';
 import TuringMachine, { defaultOptions } from '@/lib/turingMachine';
 import { Instruction, StateMap } from '@/lib/turingMachine/types';
@@ -40,8 +40,8 @@ const mountWithTable = () => {
 };
 
 beforeEach(() => {
-	useStore.getState().setMachineState({
-		...initialMachineState,
+	useStore.getState().setRegisters({
+		...initialRegisters,
 		alphabet: testAlphabet,
 		states: testStates,
 	}); // Reset the machine state

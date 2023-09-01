@@ -9,7 +9,7 @@ const testAlphabet = ['a', 'b', 'c'];
 
 describe('<BlankSymbolInput />', () => {
 	beforeEach(() => {
-		useStore.getState().setMachineState({
+		useStore.getState().setRegisters({
 			alphabet: testAlphabet
 		});
 		useStore.getState().setTapeSettings({

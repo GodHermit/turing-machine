@@ -10,19 +10,19 @@ import TableViewCell from './TableCell';
 
 export default function TableView() {
 	const [
-		machineState,
+		registers,
 		addState,
 		renameState,
 		deleteState,
 	] = useStore(state => [
-		state.machineState,
+		state.registers,
 		state.addState,
 		state.renameState,
 		state.deleteState,
 	]);
-	const debouncedMachineState = useDebounce(machineState, 500);
+	const debouncedMachineState = useDebounce(registers, 500);
 	const alphabet = [...debouncedMachineState.alphabet, TuringMachine.BLANK_SYMBOL];
-	const states = [...machineState.states].filter(state => state[0] !== '!')
+	const states = [...registers.states].filter(([key]) => key !== '!')
 
 	return (
 		<>
@@ -56,7 +56,7 @@ export default function TableView() {
 										type='text'
 										className={clsx(
 											'form-control fw-bold text-center d-block h-100 border-0',
-											[...machineState.states.values()]
+											[...registers.states.values()]
 												.filter(s => s === state[1]).length > 1 && 'is-invalid',
 										)}
 										value={state[1]}

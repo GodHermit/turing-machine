@@ -81,8 +81,8 @@ export const createMachineSlice: StateCreator<
 		const newMachine = new TuringMachine(s.machine);
 
 		// If provided initial state is not valid
-		if (options.initialStateIndex !== undefined && !s.machineState.states.get(options.initialStateIndex)) {
-			const states = [...s.machineState.states].filter(([key]) => key !== defaultOptions.finalStateIndex);
+		if (options.initialStateIndex !== undefined && !s.registers.states.get(options.initialStateIndex)) {
+			const states = [...s.registers.states].filter(([key]) => key !== defaultOptions.finalStateIndex);
 			// Get the first state as fallback
 			const fallbackStateIndex = states.length > 0 ? states[0][0] : undefined;
 
@@ -113,7 +113,7 @@ export const createMachineSlice: StateCreator<
 		}
 
 		const newMachine = new TuringMachine(s.machine);
-		const newLogs = s.machineState.logs;
+		const newLogs = s.registers.logs;
 
 		try {
 			switch (action) {
@@ -135,8 +135,8 @@ export const createMachineSlice: StateCreator<
 
 		return {
 			machine: newMachine,
-			machineState: {
-				...s.machineState,
+			registers: {
+				...s.registers,
 				logs: newLogs
 			}
 		};
@@ -147,8 +147,8 @@ export const createMachineSlice: StateCreator<
 
 		return {
 			machine: newMachine,
-			machineState: {
-				...s.machineState,
+			registers: {
+				...s.registers,
 				logs: []
 			}
 		};

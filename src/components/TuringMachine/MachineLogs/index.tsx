@@ -4,7 +4,7 @@ import { useStore } from '@/_store';
 import clsx from 'clsx';
 
 export default function MachineLogs() {
-	const [machine, machineState] = useStore(state => [state.machine, state.machineState]);
+	const [machine, registers] = useStore(state => [state.machine, state.registers]);
 
 	const moveDirection = (move?: string) => {
 		switch (move) {
@@ -17,7 +17,7 @@ export default function MachineLogs() {
 		}
 	};
 
-	if (machineState.logs.length <= 0) {
+	if (registers.logs.length <= 0) {
 		return;
 	}
 
@@ -27,7 +27,7 @@ export default function MachineLogs() {
 				Machine Logs:
 			</summary>
 			<ul className='list-group'>
-				{[...machineState.logs].reverse().map((log, i) => {
+				{[...registers.logs].reverse().map((log, i) => {
 					if (log instanceof Error) {
 						return (
 							<li key={`error-${i}`} className='list-group-item text-danger'>

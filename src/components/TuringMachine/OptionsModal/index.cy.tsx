@@ -12,7 +12,7 @@ const testStates = new Map().set('!', '!').set(0, 'q0').set(1, 'q1'),
 
 describe('<OptionsModal />', () => {
 	beforeEach(() => {
-		useStore.getState().setMachineState({
+		useStore.getState().setRegisters({
 			states: testStates
 		});
 
