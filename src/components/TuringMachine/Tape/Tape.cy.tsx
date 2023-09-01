@@ -1,7 +1,7 @@
 import { useStore } from '@/_store';
 import '@/app/globals.scss';
-import Tape from './index';
 import TuringMachine from '@/lib/turingMachine';
+import Tape from './index';
 
 /**
  * An array of viewport widths and the number of cells that should be visible at that width.
@@ -101,7 +101,7 @@ describe('<Tape />', () => {
 			};
 
 			beforeEach(() => {
-				useStore.getState().setMachineState({
+				useStore.getState().setRegisters({
 					alphabet,
 				});
 

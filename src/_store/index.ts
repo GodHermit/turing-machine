@@ -2,20 +2,25 @@ import TuringMachine from '@/lib/turingMachine';
 import { StateMap, StateMapKey } from '@/lib/turingMachine/types';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { MachineStateSlice, createMachineStateSlice } from './slices/machineStateSlice';
+import { MachineSlice, createMachineSlice } from './slices/machineSlice';
+import { RegistersSlice, createRegistersSlice } from './slices/registersSlice';
 import { TapeSettingsSlice, createTapeSettingsSlice } from './slices/tapeSettingsSlice';
 
 type StoreUtils = {
 	resetAll: () => void;
 };
 
-type StoreType = TapeSettingsSlice & MachineStateSlice & StoreUtils;
+export type StoreType = MachineSlice &
+	TapeSettingsSlice &
+	RegistersSlice &
+	StoreUtils;
 
 export const useStore = create<StoreType>()(
 	persist(
 		(...a) => ({
+			...createMachineSlice(...a),
 			...createTapeSettingsSlice(...a),
-			...createMachineStateSlice(...a),
+			...createRegistersSlice(...a),
 			resetAll: () => {
 				const [set, get, store] = a;
 
@@ -60,7 +65,7 @@ export const useStore = create<StoreType>()(
 									return log;
 								});
 						case 'blankSymbol':
-							if(value !== TuringMachine.BLANK_SYMBOL) {
+							if (value !== TuringMachine.BLANK_SYMBOL) {
 								TuringMachine.setBlankSymbol(value as string);
 							}
 							return value;
@@ -78,7 +83,7 @@ export const useStore = create<StoreType>()(
 
 						case 'logs':
 							// Convert instances of Error to plain objects
-							return (value as StoreType['machineState']['logs'])
+							return (value as StoreType['registers']['logs'])
 								.map(log => {
 									if (log instanceof Error) {
 										return {

@@ -11,13 +11,13 @@ import TapeSettingsModal from '../TapeSettingsModal';
 export default function MachineControls() {
 	const [
 		machine,
-		machineState,
+		registers,
 		executeMachine,
 		resetMachine,
 		resetAll
 	] = useStore(state => [
 		state.machine,
-		state.machineState,
+		state.registers,
 		state.executeMachine,
 		state.resetMachine,
 		state.resetAll
@@ -30,12 +30,12 @@ export default function MachineControls() {
 	 * Error state
 	 */
 	const machineError = useMemo(() => {
-		const lastLogEntry = machineState.logs[machineState.logs.length - 1];
+		const lastLogEntry = registers.logs[registers.logs.length - 1];
 		return {
 			isError: lastLogEntry instanceof Error,
 			message: lastLogEntry instanceof Error ? lastLogEntry.message : '',
 		};
-	}, [machineState]);
+	}, [registers]);
 	/**
 	 * Whether action buttons should be disabled
 	 */

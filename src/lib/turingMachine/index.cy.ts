@@ -240,15 +240,15 @@ describe('class TuringMachine { }', () => {
 
 			expect(tm.getCurrentCondition()).to.deep.eq({
 				stateIndex: defaultOptions.initialStateIndex,
-				stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
+				stateName: useStore.getState().registers.states.get(defaultOptions.initialStateIndex) || '',
 				headPosition: testHeadPos,
 				tapeValue: testInput,
 				step: 0,
 				symbol: testInput[testHeadPos],
 				instruction: {
 					...testInstruction,
-					stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
-					newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+					stateName: useStore.getState().registers.states.get(testInstruction.stateIndex) || '',
+					newStateName: useStore.getState().registers.states.get(testInstruction.newStateIndex) || ''
 				},
 				isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 			});
@@ -270,15 +270,15 @@ describe('class TuringMachine { }', () => {
 
 			expect(tm.getCurrentCondition()).to.deep.eq({
 				stateIndex: defaultOptions.initialStateIndex,
-				stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
+				stateName: useStore.getState().registers.states.get(defaultOptions.initialStateIndex) || '',
 				headPosition: defaultOptions.initialPosition,
 				tapeValue: testInput,
 				step: 0,
 				symbol: testInput[defaultOptions.initialPosition],
 				instruction: {
 					...testInstruction,
-					stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
-					newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+					stateName: useStore.getState().registers.states.get(testInstruction.stateIndex) || '',
+					newStateName: useStore.getState().registers.states.get(testInstruction.newStateIndex) || ''
 				},
 				isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 			});
@@ -302,15 +302,15 @@ describe('class TuringMachine { }', () => {
 
 				expect(tm.getCurrentCondition()).to.deep.eq({
 					stateIndex: defaultOptions.initialStateIndex,
-					stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
+					stateName: useStore.getState().registers.states.get(defaultOptions.initialStateIndex) || '',
 					headPosition: testHeadPos,
 					tapeValue: testInput,
 					step: 0,
 					symbol: TuringMachine.BLANK_SYMBOL,
 					instruction: {
 						...testInstruction,
-						stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
-						newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+						stateName: useStore.getState().registers.states.get(testInstruction.stateIndex) || '',
+						newStateName: useStore.getState().registers.states.get(testInstruction.newStateIndex) || ''
 					},
 					isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 				});
@@ -427,15 +427,15 @@ describe('class TuringMachine { }', () => {
 			}
 			expect(tm.getCurrentCondition()).to.deep.eq({
 				stateIndex: defaultOptions.initialStateIndex,
-				stateName: useStore.getState().machineState.states.get(defaultOptions.initialStateIndex) || '',
+				stateName: useStore.getState().registers.states.get(defaultOptions.initialStateIndex) || '',
 				headPosition: defaultOptions.initialPosition,
 				tapeValue: testInput,
 				step: 0,
 				symbol: testInput[defaultOptions.initialPosition],
 				instruction: {
 					...testInstruction,
-					stateName: useStore.getState().machineState.states.get(testInstruction.stateIndex) || '',
-					newStateName: useStore.getState().machineState.states.get(testInstruction.newStateIndex) || ''
+					stateName: useStore.getState().registers.states.get(testInstruction.stateIndex) || '',
+					newStateName: useStore.getState().registers.states.get(testInstruction.newStateIndex) || ''
 				},
 				isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 			});
@@ -501,7 +501,7 @@ describe('class TuringMachine { }', () => {
 				try {
 					tm.step();
 				} catch (error) {
-					const state = useStore.getState().machineState.states.get(defaultOptions.initialStateIndex);
+					const state = useStore.getState().registers.states.get(defaultOptions.initialStateIndex);
 					expect((error as Error).message).to.eq(`No instruction found for state '${state}' and symbol '${testInput[defaultOptions.initialPosition]}'`);
 				}
 			});

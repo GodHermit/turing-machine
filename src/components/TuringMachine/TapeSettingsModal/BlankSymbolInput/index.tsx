@@ -7,12 +7,12 @@ import { string } from 'yup';
 export default function BlankSymbolInput() {
 	const [
 		machine,
-		machineState,
+		registers,
 		tapeSettings,
 		setTapeSettings
 	] = useStore(state => [
 		state.machine,
-		state.machineState,
+		state.registers,
 		state.tapeSettings,
 		state.setTapeSettings
 	]);
@@ -33,9 +33,9 @@ export default function BlankSymbolInput() {
 		return string()
 			.required()
 			.max(1)
-			.notOneOf(machineState.alphabet, 'This symbol is already in the alphabet')
+			.notOneOf(registers.alphabet, 'This symbol is already in the alphabet')
 			.label('Blank symbol');
-	}, [machineState.alphabet]);
+	}, [registers.alphabet]);
 
 	const isInputInvalid = useMemo((): { value: boolean, feedback: string } => {
 		try {

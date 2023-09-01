@@ -17,7 +17,7 @@ describe('<AlphabetInput />', () => {
 	it('updates value when alphabet is changed in store', () => {
 		let alphabet = '01';
 		cy.log('**Change alphabet in store**');
-		useStore.getState().setMachineAlphabet(alphabet.split(''));
+		useStore.getState().setAlphabet(alphabet.split(''));
 		cy.findByLabelText('Alphabet:').should('have.value', alphabet);
 	});
 

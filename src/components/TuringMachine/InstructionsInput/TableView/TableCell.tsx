@@ -41,14 +41,14 @@ interface TableViewCellProps {
 export default function TableViewCell(props: TableViewCellProps) {
 	const [
 		machine,
-		machineState,
+		registers,
 		setInstructions,
 	] = useStore(state => [
 		state.machine,
-		state.machineState,
+		state.registers,
 		state.setInstructions,
 	]);
-	const debouncedMachineState = useDebounce(machineState, 500);
+	const debouncedMachineState = useDebounce(registers, 500);
 
 	const instruction = useMemo<Instruction | undefined>(
 		() => machine.getInstructions().find(instruction => (
@@ -58,7 +58,7 @@ export default function TableViewCell(props: TableViewCellProps) {
 		[machine, props.instructionStateIndex, props.instructionSymbol]
 	);
 	const defaultValue = instruction
-		? `${instruction.newSymbol} ${instruction.move} ${machineState.states.get(instruction.newStateIndex)}`
+		? `${instruction.newSymbol} ${instruction.move} ${registers.states.get(instruction.newStateIndex)}`
 		: '';
 
 	const [value, setValue] = useState<string>(defaultValue);
@@ -143,7 +143,7 @@ export default function TableViewCell(props: TableViewCellProps) {
 		// If the value is shortened instruction
 		switch (e.target.value) {
 			case machine.getOptions().finalStateIndex:
-				setValue(`${props.instructionSymbol} ${TuringMachine.NONE} ${machineState.states.get(machine.getOptions().finalStateIndex)}`);
+				setValue(`${props.instructionSymbol} ${TuringMachine.NONE} ${registers.states.get(machine.getOptions().finalStateIndex)}`);
 				addInstruction({
 					stateIndex: props.instructionStateIndex,
 					symbol: props.instructionSymbol,
@@ -156,7 +156,7 @@ export default function TableViewCell(props: TableViewCellProps) {
 			case TuringMachine.LEFT:
 			case TuringMachine.RIGHT:
 			case TuringMachine.NONE:
-				setValue(`${props.instructionSymbol} ${e.target.value} ${machineState.states.get(props.instructionStateIndex)}`);
+				setValue(`${props.instructionSymbol} ${e.target.value} ${registers.states.get(props.instructionStateIndex)}`);
 				addInstruction({
 					stateIndex: props.instructionStateIndex,
 					symbol: props.instructionSymbol,
@@ -169,7 +169,7 @@ export default function TableViewCell(props: TableViewCellProps) {
 
 		let [newSymbol, move, newState] = e.target.value.split(' ');
 
-		let newStateIndex = [...machineState.states].find(state => state[1] === newState);
+		let newStateIndex = [...registers.states].find(state => state[1] === newState);
 		if (!newStateIndex) {
 			setIsInvalid(true);
 			return;

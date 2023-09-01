@@ -3,9 +3,9 @@ import clsx from 'clsx';
 import { useMemo } from 'react';
 
 export default function InitialStateSelect() {
-	const [machine, machineState, setOptions] = useStore(state => [state.machine, state.machineState, state.setOptions]);
+	const [machine, registers, setOptions] = useStore(state => [state.machine, state.registers, state.setOptions]);
 	const initialStateIndex = machine.getOptions().initialStateIndex;
-	const states = [...machineState.states].filter(([key]) => key !== '!');
+	const states = [...registers.states].filter(([key]) => key !== '!');
 
 	/**
 	 * Value of initial state select
@@ -37,7 +37,7 @@ export default function InitialStateSelect() {
 	 * @param e change event
 	 */
 	const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		const newStateIndex = [...machineState.states].find(([key]) => key == e.target.value)?.[0] ??
+		const newStateIndex = [...registers.states].find(([key]) => key == e.target.value)?.[0] ??
 			machine.getOptions().initialStateIndex;
 
 		setOptions({
