@@ -3,9 +3,10 @@
 import { useStore } from '@/_store';
 import { useMemo } from 'react';
 import { Dropdown } from 'react-bootstrap';
-import { MdDelete, MdMoreVert, MdSettings } from 'react-icons/md';
+import { MdDelete, MdMoreVert, MdSettings, MdTune } from 'react-icons/md';
 import { useBoolean } from 'usehooks-ts';
 import OptionsModal from '../OptionsModal';
+import TapeSettingsModal from '../TapeSettingsModal';
 
 export default function MachineControls() {
 	const [
@@ -53,9 +54,18 @@ export default function MachineControls() {
 	 * Value and handlers for `OptionsModal` visibility
 	 */
 	const {
-		value: isOptionModaVisible,
+		value: isOptionModalVisible,
 		setTrue: showOptionsModal,
 		setFalse: hideOptionsModal
+	} = useBoolean(false);
+
+	/**
+	 * Value and handlers for `TapeSettingsModal` visibility
+	 */
+	const {
+		value: isTapeSettingsModalVisible,
+		setTrue: showTapeSettingsModal,
+		setFalse: hideTapeSettingsModal
 	} = useBoolean(false);
 
 	/**
@@ -130,6 +140,12 @@ export default function MachineControls() {
 						>
 							<MdSettings />Options
 						</Dropdown.Item>
+						<Dropdown.Item
+							as='button'
+							onClick={showTapeSettingsModal}
+						>
+							<MdTune />Tape Settings
+						</Dropdown.Item>
 						<Dropdown.Divider />
 						<Dropdown.Item
 							as='button'
@@ -151,9 +167,14 @@ export default function MachineControls() {
 				</div>
 			)}
 			<OptionsModal
-				show={isOptionModaVisible}
+				show={isOptionModalVisible}
 				onShow={showOptionsModal}
 				onHide={hideOptionsModal}
+			/>
+			<TapeSettingsModal
+				show={isTapeSettingsModalVisible}
+				onShow={showTapeSettingsModal}
+				onHide={hideTapeSettingsModal}
 			/>
 		</>
 	);

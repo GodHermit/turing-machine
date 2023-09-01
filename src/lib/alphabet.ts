@@ -1,3 +1,5 @@
+import TuringMachine from './turingMachine';
+
 /**
  * Creates an alphabet from a string
  * @param input
@@ -8,6 +10,7 @@ export function createAlphabet(input: string): string[] {
 		...new Set(
 			input
 				.split('')
+				.filter((char) => char !== TuringMachine.BLANK_SYMBOL)
 				.sort()
 		)
 	];

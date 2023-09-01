@@ -59,6 +59,11 @@ export const useStore = create<StoreType>()(
 
 									return log;
 								});
+						case 'blankSymbol':
+							if(value !== TuringMachine.BLANK_SYMBOL) {
+								TuringMachine.setBlankSymbol(value as string);
+							}
+							return value;
 
 						default:
 							// Return value as is

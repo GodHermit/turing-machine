@@ -37,6 +37,9 @@ $input-placeholder-color: $gray-500;
 $form-select-focus-border-color: $gray-400;
 $form-select-focus-box-shadow: none !important;
 
+//Checks and radios
+@import '@/_styles/checks';
+
 //Dropdown
 $dropdown-padding-x: .5rem;
 $dropdown-padding-y: .5rem;
@@ -152,6 +155,7 @@ select.form-select:required:invalid {
 	color: $input-placeholder-color;
 }
 
+@import '@/_styles/checks/styles';
 @import '@/_styles/modal/styles';
 
 main {

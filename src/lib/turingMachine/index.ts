@@ -181,6 +181,26 @@ export default class TuringMachine {
 		TuringMachine.BLANK_SYMBOL = symbol;
 	}
 
+	public setBlankSymbol(newBlankSymbol: string) {
+		const oldBlankSymbol = TuringMachine.BLANK_SYMBOL;
+
+		// Replace blank symbols in input
+		this.input = this.input.replaceAll(oldBlankSymbol, newBlankSymbol);
+
+		// Replace blank symbols in instructions
+		this.instructions = this.instructions.map(instruction => ({
+			...instruction,
+			symbol: instruction.symbol === oldBlankSymbol ? newBlankSymbol : instruction.symbol,
+			newSymbol: instruction.newSymbol === oldBlankSymbol ? newBlankSymbol : instruction.newSymbol
+		}));
+
+		// Replace blank symbols in current tape value
+		this.current.tapeValue = this.current.tapeValue.replaceAll(oldBlankSymbol, newBlankSymbol);
+
+		// Change blank symbol in static property
+		TuringMachine.setBlankSymbol(newBlankSymbol);
+	}
+
 	/**
 	 * Runs the machine
 	 * @returns The final tape value
@@ -217,15 +237,7 @@ export default class TuringMachine {
 			stateIndex: this.options.initialStateIndex,
 			headPosition: this.options.initialPosition,
 			step: 0
-		}
-		TuringMachine.reset();
-	}
-
-	/**
-	 * Resets static properties
-	 */
-	private static reset() {
-		TuringMachine.BLANK_SYMBOL = 'λ';
+		};
 	}
 
 	/**

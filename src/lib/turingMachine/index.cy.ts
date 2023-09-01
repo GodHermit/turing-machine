@@ -2,6 +2,8 @@ import { useStore } from '@/_store';
 import TuringMachine, { defaultOptions } from '.';
 import { Direction, Instruction } from './types';
 
+const defaultBlankSymbol = 'λ';
+
 const testInput = '1010';
 
 const testInstructions: Instruction[] = [
@@ -38,6 +40,7 @@ const testOptions = {
 describe('class TuringMachine { }', () => {
 
 	beforeEach(() => {
+		TuringMachine.setBlankSymbol(defaultBlankSymbol);
 		cy.wrap(useStore);
 	});
 
@@ -323,6 +326,64 @@ describe('class TuringMachine { }', () => {
 		});
 	});
 
+	describe('setBlankSymbol()', () => {
+		const testInput = `10${defaultBlankSymbol}01`;
+		const testInstructions: Instruction[] = [{
+			stateIndex: 0,
+			symbol: defaultBlankSymbol,
+			move: TuringMachine.RIGHT,
+			newSymbol: defaultBlankSymbol,
+			newStateIndex: 0
+		}, {
+			stateIndex: 0,
+			symbol: '0',
+			move: TuringMachine.RIGHT,
+			newSymbol: '1',
+			newStateIndex: 0
+		}];
+
+		it('should set the blank symbol', () => {
+			const tm = new TuringMachine(testInput, testInstructions);
+			tm.setBlankSymbol('b');
+			expect(TuringMachine.BLANK_SYMBOL).to.eq('b');
+			tm.setBlankSymbol('λ');
+			expect(TuringMachine.BLANK_SYMBOL).to.eq('λ');
+		});
+
+		it('should replace the blank symbol in the input', () => {
+			const tm = new TuringMachine(testInput, testInstructions);
+			tm.setBlankSymbol('b');
+			expect(tm.getInput()).to.eq(`10b01`);
+			tm.setBlankSymbol('λ');
+			expect(tm.getInput()).to.eq(testInput);
+		});
+
+		it('should replace the blank symbol in the instructions', () => {
+			const tm = new TuringMachine(testInput, testInstructions);
+			tm.setBlankSymbol('b');
+			expect(tm.getInstructions()).to.deep.eq([{
+				stateIndex: 0,
+				symbol: 'b',
+				move: TuringMachine.RIGHT,
+				newSymbol: 'b',
+				newStateIndex: 0
+			}, {
+				stateIndex: 0,
+				symbol: '0',
+				move: TuringMachine.RIGHT,
+				newSymbol: '1',
+				newStateIndex: 0
+			}]);
+		});
+
+		it('should replace the blank symbol in the current tape Value', () => {
+			const tm = new TuringMachine(testInput, testInstructions);
+			tm.setBlankSymbol('b');
+			expect(tm.getCurrentCondition().tapeValue).to.equal(`10b01`);
+		});
+
+	});
+
 	describe('run()', () => {
 		it('should return the last tape value', () => {
 			const tm = new TuringMachine(testInput, testInstructions);
@@ -378,14 +439,6 @@ describe('class TuringMachine { }', () => {
 				},
 				isFinalCondition: defaultOptions.initialStateIndex === defaultOptions.finalStateIndex,
 			});
-		});
-
-		it('should reset BLANK_SYMBOL variable', () => {
-			const tm = new TuringMachine(testInput, testInstructions);
-			TuringMachine.setBlankSymbol('b');
-			expect(TuringMachine.BLANK_SYMBOL).to.eq('b');
-			tm.reset();
-			expect(TuringMachine.BLANK_SYMBOL).to.eq('λ');
 		});
 	});
 
