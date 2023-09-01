@@ -2,11 +2,11 @@
 
 import { useStore } from '@/_store';
 import Input from '@/components/Input';
-import TuringMachine from '@/lib/turingMachine';
 import { useEffect, useMemo, useState } from 'react';
 
 export default function AlphabetInput() {
 	const [machineState, setMachineAlphabet] = useStore(state => [state.machineState, state.setMachineAlphabet]);
+	const blankSymbol = useStore(state => state.tapeSettings.blankSymbol);
 	const [alphabet, setAlphabet] = useState(machineState.alphabet.join(''));
 
 	useEffect(() => {
@@ -29,10 +29,10 @@ export default function AlphabetInput() {
 				}
 			}
 
-			if (alphabet.includes(TuringMachine.BLANK_SYMBOL)) {
+			if (alphabet.includes(blankSymbol)) {
 				return {
 					value: true,
-					feedback: `Blank symbol (${TuringMachine.BLANK_SYMBOL}) already exists in alphabet.`,
+					feedback: `Blank symbol (${blankSymbol}) already exists in alphabet.`,
 				}
 			}
 			return {
@@ -41,7 +41,8 @@ export default function AlphabetInput() {
 			};
 		},
 		[
-			alphabet
+			alphabet,
+			blankSymbol
 		]
 	);
 
@@ -51,7 +52,7 @@ export default function AlphabetInput() {
 
 		if (
 			new Set(value.split('')).size !== value.length || // If alphabet has duplicate characters
-			value.includes(TuringMachine.BLANK_SYMBOL) // If alphabet has blank symbol
+			value.includes(blankSymbol) // If alphabet has blank symbol
 		) {
 			return;
 		}
