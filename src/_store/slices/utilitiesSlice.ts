@@ -94,13 +94,36 @@ export const createUtilitiesSlice: StateCreator<
 				// Read the file
 				const reader = new FileReader();
 				reader.onload = () => {
-					if (typeof reader.result !== 'string') return;
+					try {
+						if (typeof reader.result !== 'string') return;
 
-					// Parse the JSON
-					const parsed = JSON.parse(reader.result, reviver);
+						// Parse the JSON
+						const parsed = JSON.parse(reader.result, reviver);
 
-					// Set the store to the parsed JSON
-					set(parsed);
+						// Check if keys are valid
+						Object
+							.keys(parsed)
+							.forEach(key => {
+								// If the key is not in the store
+								if (!(key in get())) {
+									throw new Error(`Import failed: Invalid key "${key}"`);
+								}
+							});
+
+						// Set the store to the parsed JSON
+						set(parsed);
+					} catch (error) {
+						// Add the error to the logs
+						set(s => ({
+							registers: {
+								...s.registers,
+								logs: [
+									...s.registers.logs,
+									error as Error,
+								],
+							},
+						}));
+					}
 				};
 				reader.readAsText(el.files[0]);
 
