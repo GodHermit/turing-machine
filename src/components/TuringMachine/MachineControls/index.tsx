@@ -3,7 +3,7 @@
 import { useStore } from '@/_store';
 import { useMemo } from 'react';
 import { Dropdown } from 'react-bootstrap';
-import { MdDelete, MdMoreVert, MdSettings, MdTune } from 'react-icons/md';
+import { MdDelete, MdDownload, MdMoreVert, MdSettings, MdTune, MdUpload } from 'react-icons/md';
 import { useBoolean } from 'usehooks-ts';
 import OptionsModal from '../OptionsModal';
 import TapeSettingsModal from '../TapeSettingsModal';
@@ -14,13 +14,17 @@ export default function MachineControls() {
 		registers,
 		executeMachine,
 		resetMachine,
-		resetAll
+		resetAll,
+		exportJSON,
+		importJSON
 	] = useStore(state => [
 		state.machine,
 		state.registers,
 		state.executeMachine,
 		state.resetMachine,
-		state.resetAll
+		state.resetAll,
+		state.exportJSON,
+		state.importJSON
 	]);
 	/**
 	 * Machine current condition
@@ -145,6 +149,19 @@ export default function MachineControls() {
 							onClick={showTapeSettingsModal}
 						>
 							<MdTune />Tape Settings
+						</Dropdown.Item>
+						<Dropdown.Divider />
+						<Dropdown.Item
+							as='button'
+							onClick={() => importJSON()}
+						>
+							<MdUpload />Import
+						</Dropdown.Item>
+						<Dropdown.Item
+							as='button'
+							onClick={() => exportJSON(true)}
+						>
+							<MdDownload />Export
 						</Dropdown.Item>
 						<Dropdown.Divider />
 						<Dropdown.Item
