@@ -4,7 +4,7 @@ import { useStore } from '@/_store';
 import Input from '@/components/Input';
 import { createAlphabet, validateString } from '@/lib/alphabet';
 import TuringMachine from '@/lib/turingMachine';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function TapeInput() {
 	const [
@@ -21,6 +21,14 @@ export default function TapeInput() {
 		state.setHeadPosition,
 	]);
 	const [value, setValue] = useState(machine.getInput());
+	const machineInput = machine.getInput();
+
+	/**
+	 * Syncs the value with the machine input.
+	 */
+	useEffect(() => {
+		setValue(machineInput);
+	}, [machineInput])
 
 	/**
 	 * Alphabet with blank symbol
@@ -85,8 +93,7 @@ export default function TapeInput() {
 		}
 
 		if (
-			registers.alphabet.length > 0 && // If alphabet is created
-			!validateString(value, alphabet) // If input does not match the alphabet
+			isWriteToTapeDisabled
 		) {
 			return;
 		}
